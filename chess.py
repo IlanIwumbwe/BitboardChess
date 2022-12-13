@@ -1,5 +1,6 @@
 import pygame
 from classicalBitboard import Board
+from moveGeneration import GenerateMoves
 
 WIDTH = 650
 HEIGHT = 650
@@ -43,11 +44,14 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+        self.board.ParseFen('R7/8/5rk1/5p2/7P/1p3KP1/P7/8 b - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.SetBoard()
-        self.board.PopulateAttackTables()
+
+        self.moveGen = GenerateMoves(self.board)
+        self.moveGen.PopulateAttackTables()
+        self.moveGen.PopulateRayTable()
 
         self.win = pygame.display.set_mode((WIDTH, HEIGHT))
         self.run = True
@@ -207,11 +211,16 @@ class Chess:
         print("Move types: '_'(normal move), 'EP'(en-passant), replace string with 'Q,N,R,B,q,n,r,b' for promotion moves")
         print('____________________________________________\nType \'Q\' to quit')
         move = input('Enter the move you\'d like to make (piece_type, from, to, move_type): ')
+
+        while not move:
+            print("Move types: '_'(normal move), 'EP'(en-passant), replace string with 'Q,N,R,B,q,n,r,b' for promotion moves")
+            print('____________________________________________\nType \'Q\' to quit')
+            move = input('Enter the move you\'d like to make (piece_type, from, to, move_type): ')
         
         if move == 'Q':
             self.console_based_run = False 
 
-        else:
+        elif len(move) > 0:
             move = move.split(',')
 
             piece_type = move[0]
@@ -219,10 +228,9 @@ class Chess:
             dest_sq = self.AlgebraicToNumber(move[2])
             move_type = move[3]
 
-            self.board.GetPossibleMoves(piece_type, initial_sq)
+            self.moveGen.GenerateAllPossibleMoves()
 
-            if piece_type == 'P' or piece_type == 'p':
-                self.board.possible_moves = list(filter(lambda move : move[1] == initial_sq, self.board.possible_moves))
+            self.board.possible_moves = list(filter(lambda move : move[1] == initial_sq, self.board.possible_moves))
 
             the_move = list(filter(lambda move: move[0] == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
             move[2] == dest_sq and move[3] == move_type, self.board.possible_moves))
@@ -241,10 +249,9 @@ class Chess:
                     dest_sq = self.AlgebraicToNumber(move[2])
                     move_type = move[3]
 
-                    self.board.GetPossibleMoves(piece_type, initial_sq)
+                    self.moveGen.GenerateAllPossibleMoves()
 
-                    if piece_type == 'P' or piece_type == 'p':
-                        self.board.possible_moves = list(filter(lambda move : move[1] == initial_sq, self.board.possible_moves))
+                    self.board.possible_moves = list(filter(lambda move : move[1] == initial_sq, self.board.possible_moves))
         
                     the_move = list(filter(lambda move: move[0] == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
                     move[2] == dest_sq and move[3] == move_type, self.board.possible_moves))
@@ -259,25 +266,27 @@ class Chess:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.run = False
-
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.GetPieceUnderMouse() is not None:
                     if not self.dragging:
+                        self.moveGen.GenerateAllPossibleMoves()
+
+                        #print("Attacked sqaures.....")
+                        #print(self.board.BBToSquares(self.board.attacked_squares))
+                        #print("King danger squares.......")
+                        #print(self.board.BBToSquares(self.board.king_danger_squares))
+
+                        #self.board.PrintBitboard(self.moveGen.RAYS['W'][57])
+
                         self.drag_piece = self.GetPieceUnderMouse()
 
                         drag_piece_type, drag_piece_square = self.drag_piece
 
-                        self.board.GetPossibleMoves(drag_piece_type, drag_piece_square)
-
-                        if drag_piece_type == 'P' or drag_piece_type == 'p':
-                            # pawn moves calculated by full bitboard bit shift, so we filter to work out the possible moves for the pawn we 
-                            # are currently dragging
-                            self.possible_drag_piece_moves = list(filter(lambda move : move[1] == drag_piece_square, self.board.possible_moves))
-                        else:
-                            # knight and king moves are calculated via precalculated attack sets, possible moves calculated on the fly for specific 
-                            # piece only, so no need to filter
-                            self.possible_drag_piece_moves = self.board.possible_moves
-
+                        """
+                        which of the possible moves are possible for the piece being dragged?
+                        """
+                        self.possible_drag_piece_moves = list(filter(lambda move : move[1] == drag_piece_square, self.moveGen.possible_moves))
+                        
                     if self.IsAllyPiece(self.drag_piece[0]):
                         self.dragging = True
 
