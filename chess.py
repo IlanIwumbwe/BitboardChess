@@ -44,7 +44,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('R7/8/5rk1/5p2/7P/1p3KP1/P7/8 b - - 0 0')
+        self.board.ParseFen('R7/8/1k1R4/5p2/7P/1p3KP1/P7/8 b - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.SetBoard()
@@ -270,14 +270,6 @@ class Chess:
                 if self.GetPieceUnderMouse() is not None:
                     if not self.dragging:
                         self.moveGen.GenerateAllPossibleMoves()
-
-                        #print("Attacked sqaures.....")
-                        #print(self.board.BBToSquares(self.board.attacked_squares))
-                        #print("King danger squares.......")
-                        #print(self.board.BBToSquares(self.board.king_danger_squares))
-
-                        #self.board.PrintBitboard(self.moveGen.RAYS['W'][57])
-
                         self.drag_piece = self.GetPieceUnderMouse()
 
                         drag_piece_type, drag_piece_square = self.drag_piece
