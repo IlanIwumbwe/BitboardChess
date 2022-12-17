@@ -5,7 +5,8 @@ class GenerateMoves:
         self.possible_moves = [] # stores moves for all pieces expect kings
 
         self.king_pseudo_legal_bitboard = 0
-
+        self.ally_king = None
+                     
         self.board = board_object
 
         """
@@ -259,7 +260,73 @@ class GenerateMoves:
 
                     for sq in dest_squares:
                         self.possible_moves.append(('p', sq - 7, sq, 'EP'))
- 
+    
+    def PossibleWhitePawnCaptures(self, square):
+        """
+        get possible attacks for a white pawn at a given square
+
+        this function checks specifically for possible captures moves of a given pawn
+        """
+        pawn_bitboard = self.board.SquareToBB(square)
+        result = np.uint64(0)
+
+        rank_8 = self.board.RANKS(8)
+  
+        # right captures
+        r_captures = ((self.board.white_pawns & pawn_bitboard) << np.uint64(7)) & ~rank_8 & ~self.board.A_FILE
+
+        result |= (r_captures & self.board.all_blacks)
+
+        # left_captures
+        l_captures = ((self.board.white_pawns & pawn_bitboard) << np.uint64(9)) & ~rank_8 & ~self.board.H_FILE
+
+        result |= (l_captures & self.board.all_blacks)
+
+        # promotion by right captures
+        promo_r_captures = ((self.board.white_pawns & pawn_bitboard) << np.uint64(7)) & rank_8 & ~self.board.A_FILE
+
+        result |= (promo_r_captures & self.board.all_blacks)
+
+        # promotion by left captures
+        promo_l_captures = ((self.board.white_pawns & pawn_bitboard) << np.uint64(9)) & rank_8 & ~self.board.H_FILE
+
+        result |= (promo_l_captures & self.board.all_blacks)
+    
+        return result
+
+    def PossibleBlackPawnCaptures(self, square):
+        """
+        get possible attacks for a white pawn at a given square
+
+        this function checks specifically for possible captures moves of a given pawn
+        """
+        pawn_bitboard = self.board.SquareToBB(square)
+        result = np.uint64(0)
+
+        rank_1 = self.board.RANKS(1)
+    
+        # right captures
+        r_captures = ((self.board.black_pawns & pawn_bitboard) >> np.uint64(9)) & ~rank_1 & ~self.board.A_FILE
+
+        result |= (r_captures & self.board.all_whites)
+
+        # left_captures
+        l_captures = ((self.board.black_pawns & pawn_bitboard) >> np.uint64(7)) & ~rank_1 & ~self.board.H_FILE
+
+        result |= (l_captures & self.board.all_whites)
+
+        # promotion by right captures
+        promo_r_captures = ((self.board.black_pawns & pawn_bitboard) >> np.uint64(9)) & rank_1 & ~self.board.A_FILE
+
+        result |= (promo_r_captures & self.board.all_whites)
+
+        # promotion by left captures
+        promo_l_captures = ((self.board.black_pawns & pawn_bitboard) >> np.uint64(7)) & rank_1 & ~self.board.H_FILE
+
+        result |= (promo_l_captures & self.board.all_whites)
+
+        return result
+
     def GetKnightAttackSet(self, bitboard):
         rank_8 = self.board.RANKS(8)
         rank_7 =  self.board.RANKS(7)
@@ -526,7 +593,7 @@ class GenerateMoves:
                 n_prime = 2**64 >> np.uint64(self.BitscanReverse(msbs_without_king) + 1)
                 r_prime = ray & ~self.RAYS['SE'][self.board.BBToSquares(n_prime)[0]]
 
-                self.board.king_danger_sqaures|= r_prime
+                self.board.king_danger_squares|= r_prime
                 
             elif piece_type == 'b' and self.board.active_piece == 'w':
                 msbs_without_king = masked_blockers & ~self.board.white_king
@@ -787,22 +854,65 @@ class GenerateMoves:
             for dest_sq in self.board.BBToSquares(result):
                 self.possible_moves.append(('q', initial_sq, dest_sq, '_'))
     
-    def FilterKingMoves(self, king_type, initial_square):
+    def FilterKingMoves(self):
         filtered = self.king_pseudo_legal_bitboard & ~self.board.king_danger_squares
 
         for dest_sq in self.board.BBToSquares(filtered):
-            self.possible_moves.append((king_type, initial_square, dest_sq, '_'))
+            self.possible_moves.append((self.ally_king[0], self.ally_king[1], dest_sq, '_'))
+
+    def SetAttackers(self):
+        ally_king_square = self.ally_king[1]
+        self.board.attackers = np.uint64(0)
+
+        for piece in self.board.pieces:
+            piece_type, piece_square = piece
+            if ((piece_type.isupper() and self.board.active_piece == 'b') or (piece_type.islower() and self.board.active_piece == 'w')) and (piece_type != 'K' or piece_type != 'k'):
+                # is enemy piece and not king
+
+                if piece_type == 'N':
+                    self.board.attackers |= (self.KNIGHT_TABLE[ally_king_square] & self.board.white_knights)
+                
+                elif piece_type == 'n':
+                    self.board.attackers |= (self.KNIGHT_TABLE[ally_king_square] & self.board.black_knights)
+
+                elif piece_type == 'B':
+                    self.board.attackers |= (self.PossibleBishopMoves('B', ally_king_square) & self.board.white_bishops)
+
+                elif piece_type == 'b':
+                    self.board.attackers |= (self.PossibleBishopMoves('b', ally_king_square) & self.board.black_bishops)
+
+                elif piece_type == 'R':
+                    self.board.attackers |= (self.PossibleRookMoves('R', ally_king_square) & self.board.white_rooks)
+
+                elif piece_type == 'r':
+                    self.board.attackers |= (self.PossibleRookMoves('r', ally_king_square) & self.board.black_rooks)
+
+                elif piece_type == 'Q':
+                    queen_moves = self.PossibleBishopMoves('B', ally_king_square) | self.PossibleRookMoves('R', ally_king_square)
+                    self.board.attackers |= (queen_moves & self.board.white_queen)
+                
+                elif piece_type == 'q':
+                    queen_moves = self.PossibleBishopMoves('b', ally_king_square) | self.PossibleRookMoves('r', ally_king_square)
+                    self.board.attackers |= (queen_moves & self.board.black_queen)
+
+                elif piece_type == 'P':
+                    if (self.PossibleWhitePawnCaptures(piece_square) & self.board.black_king) != 0:
+                        self.board.attackers |= self.board.SquareToBB(piece_square)
+
+                elif piece_type == 'p':
+                    if (self.PossibleBlackPawnCaptures(piece_square) & self.board.white_king) != 0:
+                        self.board.attackers |= self.board.SquareToBB(piece_square)
 
     def GetLegalMoves(self):
-        pass
-
+        # is the ally king in check?
+        self.SetAttackers()
+                        
     def GenerateAllPossibleMoves(self):
         # reset attacked squares bitboard, and possible moves list
         self.board.attacked_squares = np.uint64(0)
         self.board.king_danger_squares = np.uint64(0)
         self.king_pseudo_legal_bitboard = np.uint64(0)
         self.possible_moves = []
-        ally_king = None
         
         # pawn moves, pawns code does all possible moves for all pawns on board in one go, so doesn't go into for loop
         self.PossibleWhitePawnMoves()
@@ -817,11 +927,12 @@ class GenerateMoves:
             self.GetPossibleMoves(piece_type, initial_sq)
 
             if (piece_type == 'K' and self.board.active_piece == 'w') or (piece_type == 'k' and self.board.active_piece == 'b'):
-                ally_king = (piece_type, initial_sq)    
+                self.ally_king = (piece_type, initial_sq)    
 
-        king_type, king_sq = ally_king
+        self.FilterKingMoves()
 
-        self.FilterKingMoves(king_type, king_sq)
+        # final filtration on all moves to get only legal moves
+        self.GetLegalMoves()
     
 if __name__ == "main":
     moveGen = GenerateMoves()
