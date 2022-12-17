@@ -15,7 +15,7 @@ class GenerateMoves:
         self.KING_TABLE = {}
         self.KNIGHT_TABLE = {}
         self.RAYS = {}
-        
+
         for sq in range(0, 64):
             # each square key stores bitboard of attack set
             self.KING_TABLE[sq] = 0
@@ -31,7 +31,7 @@ class GenerateMoves:
 
         if self.board.active_piece == 'b':
             self.board.king_danger_squares |= r_captures
-
+    
         dest_squares = self.board.BBToSquares(r_captures & self.board.all_blacks)
 
         for sq in dest_squares:
@@ -42,7 +42,7 @@ class GenerateMoves:
 
         if self.board.active_piece == 'b':
             self.board.king_danger_squares |= l_captures
-
+        
         dest_squares = self.board.BBToSquares(l_captures & self.board.all_blacks)
 
         for sq in dest_squares:
@@ -69,7 +69,7 @@ class GenerateMoves:
 
         if self.board.active_piece == 'b':
             self.board.king_danger_squares |= promo_r_captures
-
+    
         dest_squares = self.board.BBToSquares(promo_r_captures & self.board.all_blacks)
 
         for sq in dest_squares:
@@ -81,7 +81,7 @@ class GenerateMoves:
 
         if self.board.active_piece == 'b':
             self.board.king_danger_squares |= promo_l_captures
-
+    
         dest_squares = self.board.BBToSquares(promo_l_captures & self.board.all_blacks)
 
         for sq in dest_squares:
@@ -117,7 +117,7 @@ class GenerateMoves:
 
                     if self.board.active_piece == 'b':
                         self.board.king_danger_squares |= ep_right
-
+        
                     dest_squares = self.board.BBToSquares(ep_right)
 
                     for sq in dest_squares:
@@ -149,7 +149,7 @@ class GenerateMoves:
 
         if self.board.active_piece == 'w':
             self.board.king_danger_squares |= r_captures
-
+        
         dest_squares = self.board.BBToSquares(r_captures & self.board.all_whites)
 
         for sq in dest_squares:
@@ -160,7 +160,7 @@ class GenerateMoves:
 
         if self.board.active_piece == 'w':
             self.board.king_danger_squares |= l_captures
-    
+        
         dest_squares = self.board.BBToSquares(l_captures & self.board.all_whites)
 
         for sq in dest_squares:
@@ -237,7 +237,7 @@ class GenerateMoves:
 
                     if self.board.active_piece == 'w':
                         self.board.king_danger_squares |= ep_right
-                
+                        
                     dest_squares = self.board.BBToSquares(ep_right)
 
                     for sq in dest_squares:
@@ -254,7 +254,7 @@ class GenerateMoves:
 
                     if self.board.active_piece == 'w':
                         self.board.king_danger_squares |= ep_left
-
+        
                     dest_squares = self.board.BBToSquares(ep_left)
 
                     for sq in dest_squares:
@@ -425,7 +425,7 @@ class GenerateMoves:
         if number==0:
             trail_zeros = 1
         else:
-            a = (2**np.arange(64) & number)
+            a = (2**np.arange(64, dtype = np.uint64) & number)
             trail_zeros = (a==0).argmin()
 
         return trail_zeros
@@ -433,7 +433,7 @@ class GenerateMoves:
     @staticmethod
     def BitscanReverse(number):
         # return number of leading zeroes
-        a = (2**np.arange(64) & number)
+        a = (np.uint64(2)**np.arange(64, dtype=np.uint64) & number)
         
         return 64-a.argmax()-1
 
@@ -613,6 +613,7 @@ class GenerateMoves:
             
             if (piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
+
         else:
             n = 2**64 >> np.uint64(self.BitscanReverse(masked_blockers) + 1)
 
@@ -627,7 +628,7 @@ class GenerateMoves:
 
                 self.board.king_danger_squares |= r_prime
                 
-            elif piece_type == 'r' and self.board.active_piece == 'B':
+            elif piece_type == 'r' and self.board.active_piece == 'w':
                 msbs_without_king = masked_blockers & ~self.board.white_king
                 n_prime = 2**64 >> np.uint64(self.BitscanReverse(msbs_without_king) + 1)
                 r_prime = ray & ~self.RAYS['E'][self.board.BBToSquares(n_prime)[0]]
@@ -643,6 +644,7 @@ class GenerateMoves:
 
             if (piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
+
         else:
             n = np.uint64(1) << np.uint64(self.BitscanForward(masked_blockers))
 
@@ -673,6 +675,7 @@ class GenerateMoves:
             
             if (piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
+
         else:
             n = 2**64 >> np.uint64(self.BitscanReverse(masked_blockers) + 1)
 
@@ -705,11 +708,17 @@ class GenerateMoves:
         if piece_type  == 'N':
             attack_set = self.KNIGHT_TABLE[initial_sq] & (self.board.all_blacks | self.board.empty)
 
+            if self.board.active_piece == 'b':
+                self.board.king_danger_squares |= attack_set
+
             for dest_sq in self.board.BBToSquares(attack_set):
                 self.possible_moves.append((piece_type, initial_sq, dest_sq, '_'))
 
         elif piece_type == 'n':
             attack_set = self.KNIGHT_TABLE[initial_sq] & (self.board.all_whites | self.board.empty)
+
+            if self.board.active_piece == 'w':
+                self.board.king_danger_squares |= attack_set
 
             for dest_sq in self.board.BBToSquares(attack_set):
                 self.possible_moves.append((piece_type, initial_sq, dest_sq, '_'))
@@ -717,22 +726,18 @@ class GenerateMoves:
         elif piece_type == 'K':
             attack_set = self.KING_TABLE[initial_sq] & (self.board.all_blacks | self.board.empty)
 
-            self.king_pseudo_legal_bitboard = attack_set
-            
-            """
-            for dest_sq in self.board.BBToSquares(attack_set):
-                self.possible_moves.append((piece_type, initial_sq, dest_sq, '_'))
-            """
+            if self.board.active_piece == 'w':
+                self.king_pseudo_legal_bitboard = attack_set
+            else:
+                self.board.king_danger_squares |= self.KING_TABLE[initial_sq]
 
         elif piece_type == 'k':
             attack_set = self.KING_TABLE[initial_sq] & (self.board.all_whites | self.board.empty)
 
-            self.king_pseudo_legal_bitboard = attack_set
-            
-            """
-            for dest_sq in self.board.BBToSquares(attack_set):
-                self.possible_moves.append((piece_type, initial_sq, dest_sq, '_'))
-            """
+            if self.board.active_piece == 'b':
+                self.king_pseudo_legal_bitboard = attack_set
+            else:
+                self.board.king_danger_squares |= self.KING_TABLE[initial_sq]
         
         elif piece_type == 'B':
             result = self.PossibleBishopMoves(piece_type, initial_sq)
@@ -782,19 +787,23 @@ class GenerateMoves:
             for dest_sq in self.board.BBToSquares(result):
                 self.possible_moves.append(('q', initial_sq, dest_sq, '_'))
     
-    def FilterLegalMoves(self, king_type, initial_square):
+    def FilterKingMoves(self, king_type, initial_square):
         filtered = self.king_pseudo_legal_bitboard & ~self.board.king_danger_squares
 
         for dest_sq in self.board.BBToSquares(filtered):
             self.possible_moves.append((king_type, initial_square, dest_sq, '_'))
 
-    
+    def GetLegalMoves(self):
+        pass
+
     def GenerateAllPossibleMoves(self):
         # reset attacked squares bitboard, and possible moves list
         self.board.attacked_squares = np.uint64(0)
         self.board.king_danger_squares = np.uint64(0)
+        self.king_pseudo_legal_bitboard = np.uint64(0)
         self.possible_moves = []
-
+        ally_king = None
+        
         # pawn moves, pawns code does all possible moves for all pawns on board in one go, so doesn't go into for loop
         self.PossibleWhitePawnMoves()
         self.PossibleBlackPawnMoves()
@@ -807,10 +816,13 @@ class GenerateMoves:
             """
             self.GetPossibleMoves(piece_type, initial_sq)
 
-            # filter legal moves
-            if piece_type == 'K' or piece_type == 'k':
-                self.FilterLegalMoves(piece_type, initial_sq)
-        
+            if (piece_type == 'K' and self.board.active_piece == 'w') or (piece_type == 'k' and self.board.active_piece == 'b'):
+                ally_king = (piece_type, initial_sq)    
+
+        king_type, king_sq = ally_king
+
+        self.FilterKingMoves(king_type, king_sq)
+    
 if __name__ == "main":
     moveGen = GenerateMoves()
 

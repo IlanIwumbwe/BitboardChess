@@ -44,7 +44,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('R7/8/1k1R4/5p2/7P/1p3KP1/P7/8 b - - 0 0')
+        self.board.ParseFen('4R3/1k6/1p2P1p1/p7/4r3/1P1r4/1K6/2R5 w - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.SetBoard()
