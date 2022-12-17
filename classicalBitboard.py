@@ -24,7 +24,7 @@ class Board:
 
         self.attackers = 0 # bitboard of pieces giving check
         self.king_danger_squares = 0
-        
+
         self.CENTRE = np.uint64(103481868288)
         self.EXTENDED_CENTRE = np.uint64(66229406269440)
         self.A_FILE = np.uint64(9259542123273814144)
@@ -38,9 +38,6 @@ class Board:
 
         self.RANKS = lambda rank_number : np.uint64(255 << (rank_number-1) * 8)
         
-        # moves
-        self.possible_moves = []
-
         # board_repr
         self.console_board = None
 

@@ -44,7 +44,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
+        self.board.ParseFen('4R3/1k6/1p2P1p1/p7/4r3/1P1r4/1K6/2R5 w - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.SetBoard()
@@ -230,10 +230,10 @@ class Chess:
 
             self.moveGen.GenerateAllPossibleMoves()
 
-            self.board.possible_moves = list(filter(lambda move : move[1] == initial_sq, self.board.possible_moves))
+            self.board.possible_moves = list(filter(lambda move : move[1] == initial_sq, self.moveGen.possible_moves))
 
             the_move = list(filter(lambda move: move[0] == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
-            move[2] == dest_sq and move[3] == move_type, self.board.possible_moves))
+            move[2] == dest_sq and move[3] == move_type, self.moveGen.possible_moves))
  
             while len(the_move) == 0 and move != 'Q':
                 # is the entered move valid?
@@ -251,10 +251,10 @@ class Chess:
 
                     self.moveGen.GenerateAllPossibleMoves()
 
-                    self.board.possible_moves = list(filter(lambda move : move[1] == initial_sq, self.board.possible_moves))
+                    # self.possible_drag_piece_moves = list(filter(lambda move : move[1] == initial_sq, self.moveGen.possible_moves))
         
                     the_move = list(filter(lambda move: move[0] == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
-                    move[2] == dest_sq and move[3] == move_type, self.board.possible_moves))
+                    move[2] == dest_sq and move[3] == move_type, self.moveGen.possible_moves))
             
             if move == 'Q':
                 self.console_based_run = False
@@ -306,7 +306,8 @@ class Chess:
                             self.promoting = True
 
                         elif self.move[0][3] == '_' or self.move[0][3] == 'EP':
-                            # make move, there will be one in filtered list
+                            # make move, it will be in list form, so index 0
+                            print(self.move)
                             self.MakeMove(self.move[0])
                             self.dragging = False
 

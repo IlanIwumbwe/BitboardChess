@@ -906,6 +906,20 @@ class GenerateMoves:
     def GetLegalMoves(self):
         # is the ally king in check?
         self.SetAttackers()
+
+        if self.board.attackers in (2**np.arange(64)):
+            # there's one attacker
+
+            '''
+            -> move king to another square
+            -> capture the attacker
+            -> ally piece blocks the check (only sliding piece checks can be blocked)
+            '''
+            pass
+        
+        elif self.board.attackers != 0:
+            # only king moves are valid
+            self.possible_moves = list(filter(lambda move : move[0] == 'K' or move[0] == 'k', self.possible_moves))
                         
     def GenerateAllPossibleMoves(self):
         # reset attacked squares bitboard, and possible moves list
