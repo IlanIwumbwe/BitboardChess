@@ -23,7 +23,7 @@ class Board:
         self.empty = 0
 
         self.attackers = 0 # bitboard of pieces giving check
-        self.king_danger_squares = 0
+        self.king_danger_squares = np.uint64(0)
 
         self.CENTRE = np.uint64(103481868288)
         self.EXTENDED_CENTRE = np.uint64(66229406269440)

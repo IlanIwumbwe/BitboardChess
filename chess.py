@@ -1,6 +1,7 @@
 import pygame
 from classicalBitboard import Board
 from moveGeneration import GenerateMoves
+import numpy as np
 
 WIDTH = 650
 HEIGHT = 650
@@ -44,7 +45,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('4R3/1k6/1p2P1p1/p7/4r3/1P1r4/1K6/2R5 w - - 0 0')
+        self.board.ParseFen('4R3/1k6/1p2P1p1/p7/4r3/1P1r4/2bK4/2R5 w - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.SetBoard()
@@ -271,9 +272,6 @@ class Chess:
                     if not self.dragging:
                         self.moveGen.GenerateAllPossibleMoves()
                         self.drag_piece = self.GetPieceUnderMouse()
-
-                        print('Pieces giving check:', self.board.active_piece)
-                        self.board.PrintBitboard(self.board.attackers)
 
                         drag_piece_type, drag_piece_square = self.drag_piece
 
