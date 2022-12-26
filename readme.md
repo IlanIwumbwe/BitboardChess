@@ -13,8 +13,7 @@ ______________
 
 CONSOLE 
 ______________
-![console_based](https://user-images.githubusercontent.com/56346800/207369968-7fed58a5-16c6-4dc1-9236-80413c274fdf.png)
-
+![Screenshot from 2022-12-26 22-04-54](https://user-images.githubusercontent.com/56346800/209585725-da41ed24-0293-4eea-be5f-296608778c5d.png)
 
 Bitboards are 64 bit numbers used to represent a chess board. They involve clever bit twiddling tricks to obtain moves 
 quickly. 
