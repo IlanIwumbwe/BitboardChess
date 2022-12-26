@@ -275,9 +275,6 @@ class Chess:
 
                         drag_piece_type, drag_piece_square = self.drag_piece
 
-                        print('king danger squares')
-                        self.board.PrintBitboard(self.board.king_danger_squares)
-
                         """
                         which of the possible moves are possible for the piece being dragged?
                         """

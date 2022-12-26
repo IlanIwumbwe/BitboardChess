@@ -516,7 +516,7 @@ class GenerateMoves:
     
     @staticmethod
     def BitscanForward(n):
-        return int(np.binary_repr(n & -n, 64))
+        return np.uint64(int(np.binary_repr(n & -n), 2))
 
     @staticmethod
     def BitscanReverse(n):
@@ -583,6 +583,9 @@ class GenerateMoves:
             n = self.BitscanForward(masked_blockers)
 
             r = ray & ~self.RAYS['NW'][self.board.BBToSquares(n)[0]]
+
+            print(piece_type, square)
+            self.board.PrintBitboard(r)
 
             result |= r 
 
@@ -687,6 +690,10 @@ class GenerateMoves:
             result |= ray
             if (piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
+
+        elif ((piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
+            self.board.king_danger_squares |= ray
+            
         else:
             n = self.BitscanForward(masked_blockers)
 
@@ -700,10 +707,7 @@ class GenerateMoves:
                 r_prime = ray & ~self.RAYS['N'][self.board.BBToSquares(n_prime)[0]]
 
                 self.board.king_danger_squares |= r_prime
-
-            elif ((piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
-                self.board.king_danger_squares |= ray
-                
+   
             elif piece_type == 'r' and self.board.active_piece == 'w':
                 msbs_without_king = masked_blockers & ~self.board.white_king
                 n_prime = self.BitscanForward(msbs_without_king)
@@ -774,7 +778,6 @@ class GenerateMoves:
                 self.board.king_danger_squares |= r_prime
                 
             elif piece_type == 'r' and self.board.active_piece == 'w':
-                print(piece_type, square)
                 msbs_without_king = masked_blockers & ~self.board.white_king
                 n_prime = self.BitscanForward(msbs_without_king)
                 r_prime = ray & ~self.RAYS['W'][self.board.BBToSquares(n_prime)[0]]
