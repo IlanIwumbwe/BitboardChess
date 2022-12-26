@@ -203,6 +203,18 @@ class Board:
         self.position_fen, self.active_piece, self.castling_rights, self.en_passant, self.ply, self.moves = full_fen.split(
             ' ')
 
+        if self.en_passant != '-':
+            x = ord(self.en_passant[0])-97
+            y = 8 - int(self.en_passant[1])
+
+            if y == 2:
+                # last move by black pawn 2 down
+                self.move_history.append(('p', 8 + x, 24 + x, 'EP'))
+
+            elif y == 5:
+                # last move by white pawn 2 up
+                self.move_history.append(('P', 48 + x, 32 + x, 'EP'))
+
         self.ply = int(self.ply)
         self.moves = int(self.moves)
 
