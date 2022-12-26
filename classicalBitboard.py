@@ -53,7 +53,7 @@ class Board:
         self.moves = ''
 
         # history
-        self.move_history = [('P', 51, 35, 'EP')]
+        self.move_history = []
 
         # attack tables for knights and kings
 
