@@ -275,6 +275,8 @@ class Chess:
 
                         drag_piece_type, drag_piece_square = self.drag_piece
 
+                        print(self.moveGen.number_of_attackers)
+
                         """
                         which of the possible moves are possible for the piece being dragged?
                         """

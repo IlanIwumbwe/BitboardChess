@@ -985,11 +985,12 @@ class GenerateMoves:
         elif self.board.attackers == 0:
             self.number_of_attackers = 0
 
+        else:
+            self.number_of_attackers = 2 # set to arbitrary number > 1
+
     def GetPushMask(self, king_square, attacker):
         blocker = self.board.SquareToBB(king_square)
         attacker_piece, attacker_sq = attacker
-
-        print(attacker)
 
         if attacker_piece == 'R' or attacker_piece == 'r':
             dirs = ['N', 'E', 'W', 'S']
@@ -1005,7 +1006,6 @@ class GenerateMoves:
             if (ray & blocker) != 0:
                 return ray & ~self.RAYS[dir][king_square]
         
-
     def SetMoveFilters(self):
         # set capture and push masks
         if self.number_of_attackers == 1:
