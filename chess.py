@@ -45,7 +45,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('4R3/1k6/1p2P1p1/p7/4r3/1P1r4/2bK4/2R5 w - - 0 0')
+        self.board.ParseFen('4R3/1k6/1p2P1p1/p7/5n2/1P1r4/2bK4/2R5 w - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.SetBoard()
@@ -275,6 +275,9 @@ class Chess:
 
                         drag_piece_type, drag_piece_square = self.drag_piece
 
+                        print('king danger squares')
+                        self.board.PrintBitboard(self.board.king_danger_squares)
+
                         """
                         which of the possible moves are possible for the piece being dragged?
                         """
@@ -305,7 +308,6 @@ class Chess:
 
                         elif self.move[0][3] == '_' or self.move[0][3] == 'EP':
                             # make move, it will be in list form, so index 0
-                            print(self.move)
                             self.MakeMove(self.move[0])
                             self.dragging = False
 

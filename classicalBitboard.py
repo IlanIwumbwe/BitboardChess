@@ -228,6 +228,12 @@ class Board:
 
         return squares
 
+    def GetPiecesOnBitboard(self, bb):
+        sq = self.BBToSquares(bb)[0]
+
+        return list(filter(lambda piece : piece[1] == sq, self.pieces))
+
+
     def SquareToBB(self, square):
         binary = ['0']*64
         bb = ''
