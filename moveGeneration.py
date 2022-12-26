@@ -129,8 +129,8 @@ class GenerateMoves:
                         self.board.king_danger_squares |= ep_right
                     else:
                         captured_piece = (self.board.white_pawns >> np.uint64(1)) & self.board.black_pawns & self.board.FILES[ep_file] & ~self.board.A_FILE & rank_5
-
-                        if (captured_piece | ep_right) & (self.capture_mask | self.push_mask) == (captured_piece | ep_right):
+                        
+                        if ep_right & self.push_mask != 0 or captured_piece & self.capture_mask != 0:
                             dest_squares = self.board.BBToSquares(ep_right)
 
                             for sq in dest_squares:
@@ -149,7 +149,7 @@ class GenerateMoves:
                     else:
                         captured_piece = (self.board.white_pawns << np.uint64(1)) & self.board.black_pawns & self.board.FILES[ep_file] & ~self.board.H_FILE & rank_5
 
-                        if (captured_piece | ep_left) & (self.capture_mask | self.push_mask) == (captured_piece | ep_left):
+                        if ep_left & self.push_mask != 0 or captured_piece & self.capture_mask != 0:
                             dest_squares = self.board.BBToSquares(ep_left)
 
                             for sq in dest_squares:
@@ -262,8 +262,8 @@ class GenerateMoves:
                     else:
                         captured_piece = (self.board.black_pawns >> np.uint64(1)) & self.board.white_pawns & self.board.FILES[
                     ep_file] & ~self.board.A_FILE & rank_4
-
-                        if (ep_right | captured_piece) & (self.capture_mask | self.push_mask) == (ep_right | captured_piece):
+                        
+                        if ep_right & self.push_mask != 0 or captured_piece & self.capture_mask != 0:
                             dest_squares = self.board.BBToSquares(ep_right)
 
                             for sq in dest_squares:
@@ -284,13 +284,13 @@ class GenerateMoves:
                         captured_piece = (self.board.black_pawns << np.uint64(1)) & self.board.white_pawns & self.board.FILES[
                     ep_file] & ~self.board.H_FILE & rank_4
 
-                        if (ep_left | captured_piece) & (self.capture_mask | self.push_mask) == (ep_left | captured_piece):
+                        if ep_left & self.push_mask != 0 or captured_piece & self.capture_mask != 0:
                             dest_squares = self.board.BBToSquares(ep_left)
 
                             for sq in dest_squares:
                                 self.possible_moves.append(('p', sq - 7, sq, 'EP'))
         
-    def PossibleWhitePawnCaptures(self, square):
+    def PossibleWhitePawnKingAttacks(self, square):
         """
         get possible attacks for a white pawn at a given square
 
@@ -304,26 +304,26 @@ class GenerateMoves:
         # right captures
         r_captures = ((self.board.white_pawns & pawn_bitboard) << np.uint64(7)) & ~rank_8 & ~self.board.A_FILE
 
-        result |= (r_captures & self.board.all_blacks)
+        result |= (r_captures & self.board.black_king)
 
         # left_captures
         l_captures = ((self.board.white_pawns & pawn_bitboard) << np.uint64(9)) & ~rank_8 & ~self.board.H_FILE
 
-        result |= (l_captures & self.board.all_blacks)
+        result |= (l_captures & self.board.black_king)
 
         # promotion by right captures
         promo_r_captures = ((self.board.white_pawns & pawn_bitboard) << np.uint64(7)) & rank_8 & ~self.board.A_FILE
 
-        result |= (promo_r_captures & self.board.all_blacks)
+        result |= (promo_r_captures & self.board.black_king)
 
         # promotion by left captures
         promo_l_captures = ((self.board.white_pawns & pawn_bitboard) << np.uint64(9)) & rank_8 & ~self.board.H_FILE
 
-        result |= (promo_l_captures & self.board.all_blacks)
+        result |= (promo_l_captures & self.board.black_king)
     
         return result
 
-    def PossibleBlackPawnCaptures(self, square):
+    def PossibleBlackPawnKingAttacks(self, square):
         """
         get possible attacks for a white pawn at a given square
 
@@ -337,22 +337,22 @@ class GenerateMoves:
         # right captures
         r_captures = ((self.board.black_pawns & pawn_bitboard) >> np.uint64(9)) & ~rank_1 & ~self.board.A_FILE
 
-        result |= (r_captures & self.board.all_whites)
+        result |= (r_captures & self.board.white_king)
 
         # left_captures
         l_captures = ((self.board.black_pawns & pawn_bitboard) >> np.uint64(7)) & ~rank_1 & ~self.board.H_FILE
 
-        result |= (l_captures & self.board.all_whites)
+        result |= (l_captures & self.board.white_king)
 
         # promotion by right captures
         promo_r_captures = ((self.board.black_pawns & pawn_bitboard) >> np.uint64(9)) & rank_1 & ~self.board.A_FILE
 
-        result |= (promo_r_captures & self.board.all_whites)
+        result |= (promo_r_captures & self.board.white_king)
 
         # promotion by left captures
         promo_l_captures = ((self.board.black_pawns & pawn_bitboard) >> np.uint64(7)) & rank_1 & ~self.board.H_FILE
 
-        result |= (promo_l_captures & self.board.all_whites)
+        result |= (promo_l_captures & self.board.white_king)
 
         return result
 
@@ -583,9 +583,6 @@ class GenerateMoves:
             n = self.BitscanForward(masked_blockers)
 
             r = ray & ~self.RAYS['NW'][self.board.BBToSquares(n)[0]]
-
-            print(piece_type, square)
-            self.board.PrintBitboard(r)
 
             result |= r 
 
@@ -972,11 +969,11 @@ class GenerateMoves:
                     self.board.attackers |= (queen_moves & self.board.black_queen)
 
                 elif piece_type == 'P':
-                    if (self.PossibleWhitePawnCaptures(piece_square) & self.board.black_king) != 0:
+                    if (self.PossibleWhitePawnKingAttacks(piece_square) & self.board.black_king) != 0:
                         self.board.attackers |= self.board.SquareToBB(piece_square)
 
                 elif piece_type == 'p':
-                    if (self.PossibleBlackPawnCaptures(piece_square) & self.board.white_king) != 0:
+                    if (self.PossibleBlackPawnKingAttacks(piece_square) & self.board.white_king) != 0:
                         self.board.attackers |= self.board.SquareToBB(piece_square)
         
         if self.board.attackers in (2**np.arange(64)):
@@ -1015,7 +1012,7 @@ class GenerateMoves:
             king_sq = self.ally_king[1]
             attacker = self.board.GetPiecesOnBitboard(self.board.attackers)[0]
 
-            if attacker in ['Q', 'R', 'B', 'q', 'r', 'b']:
+            if attacker[0] in ['Q', 'R', 'B', 'q', 'r', 'b']:
                 self.push_mask = self.GetPushMask(king_sq, attacker)
             else:
                 self.push_mask = np.uint64(0)
@@ -1056,6 +1053,8 @@ class GenerateMoves:
     
         self.FilterKingMoves()
     
+
+
 if __name__ == "main":
     moveGen = GenerateMoves()
 

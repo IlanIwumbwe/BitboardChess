@@ -45,7 +45,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('4R3/1k6/1p2P1p1/p7/5n2/1P1r4/2bK4/2R5 w - - 0 0')
+        self.board.ParseFen('8/8/8/2k5/3Pp3/8/8/4K3 b - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.SetBoard()
@@ -266,6 +266,9 @@ class Chess:
     def VisualBoard(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                print('Final state>>>>>>>>>>>>>>>>>>>>>>>')
+                self.board.PrintBoard()
+
                 self.run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.GetPieceUnderMouse() is not None:
@@ -275,7 +278,10 @@ class Chess:
 
                         drag_piece_type, drag_piece_square = self.drag_piece
 
-                        print(self.moveGen.number_of_attackers)
+                        """print('push mask')
+                        self.board.PrintBitboard(self.moveGen.push_mask)
+                        print('capture mask')
+                        self.board.PrintBitboard(self.moveGen.capture_mask)"""
 
                         """
                         which of the possible moves are possible for the piece being dragged?
