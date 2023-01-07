@@ -16,7 +16,7 @@ class GenerateMoves:
         self.KING_TABLE : dict[int, Any] = {}
         self.KNIGHT_TABLE : dict[int, Any] = {}
         self.RAYS : dict[str, dict[int, Any]] = {}
-
+        self.PINNED_RAYS : dict[str, dict[int, Any]] = {piece: {sq: (2**64) - 1 for sq in range(64)} for piece in self.board.pieces}
         for sq in range(0, 64):
             # each square key stores bitboard of attack set
             self.KING_TABLE[sq] = 0
@@ -1012,6 +1012,7 @@ class GenerateMoves:
             king_sq = self.ally_king[1]
             attacker = self.board.GetPiecesOnBitboard(self.board.attackers)[0]
 
+            # if piece is a slider
             if attacker[0] in ['Q', 'R', 'B', 'q', 'r', 'b']:
                 self.push_mask = self.GetPushMask(king_sq, attacker)
             else:
@@ -1021,7 +1022,9 @@ class GenerateMoves:
             self.capture_mask = (2**64) - 1
             self.push_mask = (2**64) - 1
 
-                  
+    def SetPinnedMasks(self):
+        pass
+    
     def GenerateAllPossibleMoves(self):
         # reset attacked squares bitboard, and possible moves list
         self.board.attacked_squares = np.uint64(0)
