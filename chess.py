@@ -45,7 +45,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('4R3/1k6/1p2P1p1/p7/4r3/1P1r4/2bK4/2R5 w - - 0 0')
+        self.board.ParseFen('3b2k1/1p3p2/p1p5/2P4p/1P2P1p1/5p2/5P2/4RK2 w - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.SetBoard()
@@ -192,10 +192,10 @@ class Chess:
         self.SwitchActivePiece()
 
     def SwitchActivePiece(self):
-        if self.board.active_piece == 'w':
-            self.board.active_piece = 'b'
+        if self.board.active_piece == "w":
+            self.board.active_piece = "b"
         else:
-            self.board.active_piece = 'w'
+            self.board.active_piece = "w"
 
     @staticmethod
     def AlgebraicToNumber(square):
@@ -210,8 +210,8 @@ class Chess:
         self.board.PrintBoard()
 
         print("Move types: '_'(normal move), 'EP'(en-passant), replace string with 'Q,N,R,B,q,n,r,b' for promotion moves")
-        print('____________________________________________\nType \'Q\' to quit')
-        move = input('Enter the move you\'d like to make (piece_type, from, to, move_type): ')
+        print("____________________________________________\nType \'Q\' to quit")
+        move = input("Enter the move you\'d like to make (piece_type, from, to, move_type): ")
 
         while not move:
             print("Move types: '_'(normal move), 'EP'(en-passant), replace string with 'Q,N,R,B,q,n,r,b' for promotion moves")
@@ -266,6 +266,9 @@ class Chess:
     def VisualBoard(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                print('Final state>>>>>>>>>>>>>>>>>>>>>>>')
+                self.board.PrintBoard()
+
                 self.run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.GetPieceUnderMouse() is not None:
@@ -274,6 +277,11 @@ class Chess:
                         self.drag_piece = self.GetPieceUnderMouse()
 
                         drag_piece_type, drag_piece_square = self.drag_piece
+
+                        """print('push mask')
+                        self.board.PrintBitboard(self.moveGen.push_mask)
+                        print('capture mask')
+                        self.board.PrintBitboard(self.moveGen.capture_mask)"""
 
                         """
                         which of the possible moves are possible for the piece being dragged?
@@ -305,7 +313,6 @@ class Chess:
 
                         elif self.move[0][3] == '_' or self.move[0][3] == 'EP':
                             # make move, it will be in list form, so index 0
-                            print(self.move)
                             self.MakeMove(self.move[0])
                             self.dragging = False
 

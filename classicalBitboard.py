@@ -24,6 +24,7 @@ class Board:
 
         self.attackers = 0 # bitboard of pieces giving check
         self.king_danger_squares = np.uint64(0)
+        self.ally_king_checked = False
 
         self.CENTRE = np.uint64(103481868288)
         self.EXTENDED_CENTRE = np.uint64(66229406269440)
@@ -55,21 +56,6 @@ class Board:
         # history
         self.move_history = []
 
-        # attack tables for knights and kings
-
-        """
-        Kings, pawns* and knights move in very predictable ways. These lookup tables are pre-calculated with each square and possible squares piece can land on.
-        Finding actual moves is a matter of making 
-        """
-        self.KING_TABLE = {}
-        self.KNIGHT_TABLE = {}
-        self.RAYS = {}
-        
-        for sq in range(0, 64):
-            # each square key stores bitboard of attack set
-            self.KING_TABLE[sq] = 0
-            self.KNIGHT_TABLE[sq] = 0
-            
     def FenToBitboards(self):
         # bitboards setup
         bbs = {'P':['0']*64, 'N':['0']*64, 'B':['0']*64, 'R':['0']*64, 'Q':['0']*64, 'K':['0']*64, 'p':['0']*64, 'n':['0']*64, 'b':['0']*64, 'r':['0']*64, 'q':['0']*64, 'k':['0']*64}
@@ -203,6 +189,18 @@ class Board:
         self.position_fen, self.active_piece, self.castling_rights, self.en_passant, self.ply, self.moves = full_fen.split(
             ' ')
 
+        if self.en_passant != '-':
+            x = ord(self.en_passant[0])-97
+            y = 8 - int(self.en_passant[1])
+
+            if y == 2:
+                # last move by black pawn 2 down
+                self.move_history.append(('p', 8 + x, 24 + x, 'EP'))
+
+            elif y == 5:
+                # last move by white pawn 2 up
+                self.move_history.append(('P', 48 + x, 32 + x, 'EP'))
+
         self.ply = int(self.ply)
         self.moves = int(self.moves)
 
@@ -227,6 +225,12 @@ class Board:
                     squares.append(8*rank_ind + file_ind)
 
         return squares
+
+    def GetPiecesOnBitboard(self, bb):
+        sq = self.BBToSquares(bb)[0]
+
+        return list(filter(lambda piece : piece[1] == sq, self.pieces))
+
 
     def SquareToBB(self, square):
         binary = ['0']*64
