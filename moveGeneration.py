@@ -153,7 +153,7 @@ class GenerateMoves:
                             dest_squares = self.board.BBToSquares(ep_left)
 
                             for sq in dest_squares:
-                                self.possible_moves.append(('P', sq + 7, sq, 'EP'))
+                                self.possible_moves.append(('P', sq + 9, sq, 'EP'))
                     
     def PossibleBlackPawnMoves(self):
         rank_1 = self.board.RANKS(1)
@@ -900,6 +900,7 @@ class GenerateMoves:
             result = self.PossibleRookMoves(piece_type, initial_sq)
 
             if self.board.active_piece == 'b' and self.number_of_attackers <= 1:
+                # check that there's 1 or less attackers,  beacuse then no moves are possible, except king moves out of check
                 result &= (self.board.all_whites | self.board.empty)
                 result &= (self.capture_mask | self.push_mask)
 
@@ -1023,6 +1024,7 @@ class GenerateMoves:
             self.push_mask = (2**64) - 1
 
     def SetPinnedMasks(self):
+        # all pieces except for kings can be pinned
         pass
     
     def GenerateAllPossibleMoves(self):

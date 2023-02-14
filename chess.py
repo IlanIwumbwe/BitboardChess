@@ -192,10 +192,10 @@ class Chess:
         self.SwitchActivePiece()
 
     def SwitchActivePiece(self):
-        if self.board.active_piece == 'w':
-            self.board.active_piece = 'b'
+        if self.board.active_piece == "w":
+            self.board.active_piece = "b"
         else:
-            self.board.active_piece = 'w'
+            self.board.active_piece = "w"
 
     @staticmethod
     def AlgebraicToNumber(square):
@@ -210,8 +210,8 @@ class Chess:
         self.board.PrintBoard()
 
         print("Move types: '_'(normal move), 'EP'(en-passant), replace string with 'Q,N,R,B,q,n,r,b' for promotion moves")
-        print('____________________________________________\nType \'Q\' to quit')
-        move = input('Enter the move you\'d like to make (piece_type, from, to, move_type): ')
+        print("____________________________________________\nType \'Q\' to quit")
+        move = input("Enter the move you\'d like to make (piece_type, from, to, move_type): ")
 
         while not move:
             print("Move types: '_'(normal move), 'EP'(en-passant), replace string with 'Q,N,R,B,q,n,r,b' for promotion moves")
