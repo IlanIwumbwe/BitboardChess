@@ -6,6 +6,7 @@ class GenerateMoves:
         self.possible_moves = [] # stores moves for all pieces expect kings
 
         self.ally_king = None
+        self.enemy_king = None
                      
         self.board = board_object
 
@@ -16,7 +17,6 @@ class GenerateMoves:
         self.KING_TABLE : dict[int, Any] = {}
         self.KNIGHT_TABLE : dict[int, Any] = {}
         self.RAYS : dict[str, dict[int, Any]] = {}
-        self.PINNED_RAYS : dict[str, dict[int, Any]] = {piece: {sq: (2**64) - 1 for sq in range(64)} for piece in self.board.pieces}
         for sq in range(0, 64):
             # each square key stores bitboard of attack set
             self.KING_TABLE[sq] = 0
@@ -26,6 +26,8 @@ class GenerateMoves:
         self.capture_mask = 0 # bitboard of all squares we can possibly capture to
         self.push_mask = 0 # bitboard of all squares we can popssibly move to
         self.number_of_attackers = 0
+
+        self.opposite_dir = {'N': 'S', 'E': 'W', 'NE': 'SW', 'NW': 'SE', 'SE': 'NW', 'SW': 'NE', 'S': 'N', 'W':'E'}
 
     def PossibleWhitePawnMoves(self):
         rank_8 = self.board.RANKS(8)
@@ -819,13 +821,13 @@ class GenerateMoves:
         return result
 
 
-    def GetPossibleMoves(self, piece_type, initial_sq):
+    def GetPossibleMoves(self, piece):
         """
         For a given piece type and square, the function appends to the list of all possible moves, all moves for given piece at given square
         Attacked squares bitboard is also calculated
         """ 
-        if piece_type  == 'N':
-            attack_set = self.KNIGHT_TABLE[initial_sq] & (self.board.all_blacks | self.board.empty)
+        if piece.name  == 'N':
+            attack_set = self.KNIGHT_TABLE[piece.square] & (self.board.all_blacks | self.board.empty)
 
             if self.board.active_piece == 'b':
                 self.board.king_danger_squares |= attack_set
@@ -835,10 +837,10 @@ class GenerateMoves:
                 attack_set = attack_set & (self.capture_mask | self.push_mask)
 
                 for dest_sq in self.board.BBToSquares(attack_set):
-                    self.possible_moves.append((piece_type, initial_sq, dest_sq, '_'))
+                    self.possible_moves.append((piece.name, piece.square, dest_sq, '_'))
 
-        elif piece_type == 'n':
-            attack_set = self.KNIGHT_TABLE[initial_sq] & (self.board.all_whites | self.board.empty)
+        elif piece.name == 'n':
+            attack_set = self.KNIGHT_TABLE[piece.square] & (self.board.all_whites | self.board.empty)
 
             if self.board.active_piece == 'w':
                 self.board.king_danger_squares |= attack_set
@@ -847,57 +849,57 @@ class GenerateMoves:
                 attack_set = attack_set & (self.capture_mask | self.push_mask)
 
                 for dest_sq in self.board.BBToSquares(attack_set):
-                    self.possible_moves.append((piece_type, initial_sq, dest_sq, '_'))
+                    self.possible_moves.append((piece.name, piece.square, dest_sq, '_'))
 
-        elif piece_type == 'K':
-            attack_set = self.KING_TABLE[initial_sq] & (self.board.all_blacks | self.board.empty)
+        elif piece.name == 'K':
+            attack_set = self.KING_TABLE[piece.square] & (self.board.all_blacks | self.board.empty)
 
             if self.board.active_piece == 'w':
                 self.king_pseudo_legal_bitboard = attack_set
             
             else:
-                self.board.king_danger_squares |= self.KING_TABLE[initial_sq]
+                self.board.king_danger_squares |= self.KING_TABLE[piece.square]
 
-        elif piece_type == 'k':
-            attack_set = self.KING_TABLE[initial_sq] & (self.board.all_whites | self.board.empty)
+        elif piece.name == 'k':
+            attack_set = self.KING_TABLE[piece.square] & (self.board.all_whites | self.board.empty)
 
             if self.board.active_piece == 'b':
                 self.king_pseudo_legal_bitboard = attack_set
             else:
-                self.board.king_danger_squares |= self.KING_TABLE[initial_sq]
+                self.board.king_danger_squares |= self.KING_TABLE[piece.square]
         
-        elif piece_type == 'B':
-            result = self.PossibleBishopMoves(piece_type, initial_sq)
+        elif piece.name == 'B':
+            result = self.PossibleBishopMoves(piece.name, piece.square)
 
             if self.board.active_piece == 'w' and self.number_of_attackers <= 1:
-                result &= (self.board.all_blacks | self.board.empty)
+                result &= (self.board.all_blacks | self.board.empty | piece.pinned_mask)
                 result &= (self.capture_mask | self.push_mask)
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append(('B', initial_sq, dest_sq, '_'))
+                    self.possible_moves.append(('B', piece.square, dest_sq, '_'))
 
-        elif piece_type == 'b':
-            result = self.PossibleBishopMoves(piece_type, initial_sq)
+        elif piece.name == 'b':
+            result = self.PossibleBishopMoves(piece.name, piece.square)
 
             if self.board.active_piece == 'b' and self.number_of_attackers <= 1:
                 result &= (self.board.all_whites | self.board.empty)
                 result &= (self.capture_mask | self.push_mask)
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append(('b', initial_sq, dest_sq, '_'))
+                    self.possible_moves.append(('b', piece.square, dest_sq, '_'))
             
-        elif piece_type == 'R':
-            result = self.PossibleRookMoves(piece_type, initial_sq)
+        elif piece.name == 'R':
+            result = self.PossibleRookMoves(piece.name, piece.square)
 
             if self.board.active_piece == 'w' and self.number_of_attackers <= 1:
                 result &= (self.board.all_blacks | self.board.empty)
                 result &= (self.capture_mask | self.push_mask)
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append(('R', initial_sq, dest_sq, '_'))
+                    self.possible_moves.append(('R', piece.square, dest_sq, '_'))
 
-        elif piece_type == 'r':
-            result = self.PossibleRookMoves(piece_type, initial_sq)
+        elif piece.name == 'r':
+            result = self.PossibleRookMoves(piece.name, piece.square)
 
             if self.board.active_piece == 'b' and self.number_of_attackers <= 1:
                 # check that there's 1 or less attackers,  beacuse then no moves are possible, except king moves out of check
@@ -905,77 +907,82 @@ class GenerateMoves:
                 result &= (self.capture_mask | self.push_mask)
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append(('r', initial_sq, dest_sq, '_'))
+                    self.possible_moves.append(('r', piece.square, dest_sq, '_'))
             
-        elif piece_type == 'Q':
-            result = self.PossibleBishopMoves('B', initial_sq) | self.PossibleRookMoves('R', initial_sq)
+        elif piece.name == 'Q':
+            result = self.PossibleBishopMoves('B', piece.square) | self.PossibleRookMoves('R', piece.square)
 
             if self.board.active_piece == 'w' and self.number_of_attackers <= 1:
                 result &= (self.board.all_blacks | self.board.empty)
-                result &= (self.capture_mask | self.push_mask)
+                result &= (self.capture_mask | self.push_mask | piece.pinned_mask)
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append(('Q', initial_sq, dest_sq, '_'))
+                    self.possible_moves.append(('Q', piece.square, dest_sq, '_'))
 
-        elif piece_type == 'q':
-            result = self.PossibleBishopMoves('b', initial_sq) | self.PossibleRookMoves('r', initial_sq)
+        elif piece.name == 'q':
+            result = self.PossibleBishopMoves('b', piece.square) | self.PossibleRookMoves('r', piece.square)
 
             if self.board.active_piece == 'b' and self.number_of_attackers <= 1:
                 result &= (self.board.all_whites | self.board.empty)
                 result &= (self.capture_mask | self.push_mask)
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append(('q', initial_sq, dest_sq, '_'))
+                    self.possible_moves.append(('q', piece.square, dest_sq, '_'))
     
 
     def FilterKingMoves(self):
         filtered = self.king_pseudo_legal_bitboard & ~self.board.king_danger_squares
 
         for dest_sq in self.board.BBToSquares(filtered):
-            self.possible_moves.append((self.ally_king[0], self.ally_king[1], dest_sq, '_'))
+            self.possible_moves.append((self.ally_king.name, self.ally_king.square, dest_sq, '_'))
+
+    def IsEnemyPiece(self, piece):
+        return piece.colour != self.board.active_piece
+
+    def IsAllyPiece(self, piece):
+        return piece.colour == self.board.active_piece
 
     def GetAttackers(self):
-        ally_king_square = self.ally_king[1]
+        ally_king_square = self.ally_king.square
         self.board.attackers = np.uint64(0)
 
         for piece in self.board.pieces:
-            piece_type, piece_square = piece
-            if ((piece_type.isupper() and self.board.active_piece == 'b') or (piece_type.islower() and self.board.active_piece == 'w')) and (piece_type != 'K' or piece_type != 'k'):
+            if self.IsEnemyPiece(piece) and (piece.name != 'K' or piece.name != 'k'):
                 # is enemy piece and not king
 
-                if piece_type == 'N':
+                if piece.name == 'N':
                     self.board.attackers |= (self.KNIGHT_TABLE[ally_king_square] & self.board.white_knights)
                 
-                elif piece_type == 'n':
+                elif piece.name == 'n':
                     self.board.attackers |= (self.KNIGHT_TABLE[ally_king_square] & self.board.black_knights)
 
-                elif piece_type == 'B':
+                elif piece.name == 'B':
                     self.board.attackers |= (self.PossibleBishopMoves('B', ally_king_square) & self.board.white_bishops)
 
-                elif piece_type == 'b':
+                elif piece.name == 'b':
                     self.board.attackers |= (self.PossibleBishopMoves('b', ally_king_square) & self.board.black_bishops)
 
-                elif piece_type == 'R':
+                elif piece.name == 'R':
                     self.board.attackers |= (self.PossibleRookMoves('R', ally_king_square) & self.board.white_rooks)
 
-                elif piece_type == 'r':
+                elif piece.name == 'r':
                     self.board.attackers |= (self.PossibleRookMoves('r', ally_king_square) & self.board.black_rooks)
 
-                elif piece_type == 'Q':
+                elif piece.name == 'Q':
                     queen_moves = self.PossibleBishopMoves('B', ally_king_square) | self.PossibleRookMoves('R', ally_king_square)
                     self.board.attackers |= (queen_moves & self.board.white_queen)
                 
-                elif piece_type == 'q':
+                elif piece.name == 'q':
                     queen_moves = self.PossibleBishopMoves('b', ally_king_square) | self.PossibleRookMoves('r', ally_king_square)
                     self.board.attackers |= (queen_moves & self.board.black_queen)
 
-                elif piece_type == 'P':
-                    if (self.PossibleWhitePawnKingAttacks(piece_square) & self.board.black_king) != 0:
-                        self.board.attackers |= self.board.SquareToBB(piece_square)
+                elif piece.name == 'P':
+                    if (self.PossibleWhitePawnKingAttacks(piece.square) & self.board.black_king) != 0:
+                        self.board.attackers |= self.board.SquareToBB(piece.square)
 
-                elif piece_type == 'p':
-                    if (self.PossibleBlackPawnKingAttacks(piece_square) & self.board.white_king) != 0:
-                        self.board.attackers |= self.board.SquareToBB(piece_square)
+                elif piece.name == 'p':
+                    if (self.PossibleBlackPawnKingAttacks(piece.square) & self.board.white_king) != 0:
+                        self.board.attackers |= self.board.SquareToBB(piece.square)
         
         if self.board.attackers in (2**np.arange(64)):
             self.number_of_attackers = 1
@@ -988,19 +995,18 @@ class GenerateMoves:
 
     def GetPushMask(self, king_square, attacker):
         blocker = self.board.SquareToBB(king_square)
-        attacker_piece, attacker_sq = attacker
 
-        if attacker_piece == 'R' or attacker_piece == 'r':
+        if attacker.name == 'R' or attacker.name == 'r':
             dirs = ['N', 'E', 'W', 'S']
             
-        elif attacker_piece == 'B' or attacker_piece == 'b':
+        elif attacker.name == 'B' or attacker.name == 'b':
             dirs = ['NE', 'NW', 'SE', 'SW']
 
-        elif attacker_piece == 'Q' or attacker_piece == 'q':
+        elif attacker.name == 'Q' or attacker.name == 'q':
             dirs = ['N', 'E', 'W', 'S', 'NE', 'NW', 'SE', 'SW']
 
         for dir in dirs:
-            ray = self.RAYS[dir][attacker_sq] 
+            ray = self.RAYS[dir][attacker.square] 
             if (ray & blocker) != 0:
                 return ray & ~self.RAYS[dir][king_square]
         
@@ -1010,12 +1016,11 @@ class GenerateMoves:
             self.capture_mask = self.board.attackers
 
             # setup push mask....
-            king_sq = self.ally_king[1]
             attacker = self.board.GetPiecesOnBitboard(self.board.attackers)[0]
 
             # if piece is a slider
-            if attacker[0] in ['Q', 'R', 'B', 'q', 'r', 'b']:
-                self.push_mask = self.GetPushMask(king_sq, attacker)
+            if attacker.name in ['Q', 'R', 'B', 'q', 'r', 'b']:
+                self.push_mask = self.GetPushMask(self.ally_king.square, attacker)
             else:
                 self.push_mask = np.uint64(0)
         
@@ -1024,8 +1029,53 @@ class GenerateMoves:
             self.push_mask = (2**64) - 1
 
     def SetPinnedMasks(self):
-        # all pieces except for kings can be pinned
-        pass
+        """
+        all pieces except for kings can be pinned
+
+        for each possible direction from ally king, look at rays from enemy sliders in opposite direction, find intersection
+        """
+
+        if self.board.active_piece == 'w':
+            enemy_sliders = self.board.GetPiecesOnBitboard(self.board.black_bishops | self.board.black_queen | self.board.black_rooks)
+
+            non_diagonal_pins = self.board.white_rooks | self.board.white_pawns | self.board.white_queen
+            diagonal_pins = self.board.white_bishops | self.board.white_pawns | self.board.white_queen
+
+        else:
+            enemy_sliders = self.board.GetPiecesOnBitboard(self.board.white_bishops | self.board.white_queen | self.board.white_rooks)
+
+            non_diagonal_pins = self.board.black_rooks | self.board.black_pawns | self.board.black_queen
+            diagonal_pins = self.board.black_bishops | self.board.black_pawns | self.board.black_queen
+
+        # non-diagonal
+        for dir in ['N', 'E', 'W', 'S']:
+            for piece in enemy_sliders:
+                if piece.name != 'b' and piece.name != 'B':
+                    possible_mask = self.RAYS[self.opposite_dir[dir]][piece.square] & self.RAYS[dir][self.ally_king.square]
+
+                    if possible_mask & non_diagonal_pins in (2**np.arange(64)):
+                        pinned_piece = self.board.GetPiecesOnBitboard(possible_mask & non_diagonal_pins)[0]
+
+                        pinned_piece.pinned_mask = possible_mask
+
+        # diagonal
+        for dir in ['NE', 'SE', 'NW', 'SW']:
+            for piece in enemy_sliders:
+                if piece.name != 'r' and piece.name != 'R':
+                    possible_mask = self.RAYS[self.opposite_dir[dir]][piece.square] & self.RAYS[dir][self.ally_king.square]
+
+                    if possible_mask & diagonal_pins in (2**np.arange(64)):
+                        pinned_piece = self.board.GetPiecesOnBitboard(possible_mask & diagonal_pins)[0]
+
+                        print(pinned_piece.name, pinned_piece.square)
+
+                        pinned_piece.pinned_mask = possible_mask
+
+    def GetAllyKing(self):
+        return list(filter(lambda piece : self.IsAllyPiece(piece) and (piece.name == 'K' or piece.name == 'k'), self.board.pieces))[0]
+
+    def GetEnemyKing(self):
+        return list(filter(lambda piece : self.IsEnemyPiece(piece) and (piece.name == 'K' or piece.name == 'k'), self.board.pieces))[0]
     
     def GenerateAllPossibleMoves(self):
         # reset attacked squares bitboard, and possible moves list
@@ -1037,10 +1087,12 @@ class GenerateMoves:
 
         self.possible_moves = []
 
-        self.ally_king = list(filter(lambda piece : ((piece[0] == 'K' and self.board.active_piece == 'w') or (piece[0] == 'k' and self.board.active_piece == 'b')), self.board.pieces))[0]
-        
+        self.ally_king = self.GetAllyKing()
+        self.enemy_king = self.GetEnemyKing()
+
         self.GetAttackers()
-        self.SetMoveFilters()  
+        self.SetMoveFilters() 
+        self.SetPinnedMasks() 
 
         # THIS MUST STAY HERE ****************************
                                                         
@@ -1052,9 +1104,9 @@ class GenerateMoves:
         self.PossibleWhitePawnMoves()
         self.PossibleBlackPawnMoves()
 
-        for piece_type, initial_sq in self.board.pieces:
-            if piece_type != 'P' and piece_type != 'p':
-                self.GetPossibleMoves(piece_type, initial_sq)
+        for piece in self.board.pieces:
+            if piece.name != 'P' and piece.name != 'p':
+                self.GetPossibleMoves(piece)
     
         self.FilterKingMoves()
     

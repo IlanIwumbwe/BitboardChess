@@ -1,5 +1,5 @@
 import numpy as np
-
+from piece import Piece
 
 class Board:
     def __init__(self):
@@ -116,7 +116,8 @@ class Board:
         for bb, string in piece_str.items():
             for sq in self.BBToSquares(bb):
                 self.console_board[sq] = string
-                self.pieces.append((string, sq))
+                self.pieces.append(Piece(string, sq))
+                # self.pieces.append((string, sq))
 
     def PrintAllBitboards(self):
         for piece_type in ['R', 'N', 'B', 'Q', 'K', 'r', 'n', 'b', 'q', 'k', 'P', 'p']:
@@ -227,10 +228,7 @@ class Board:
         return squares
 
     def GetPiecesOnBitboard(self, bb):
-        sq = self.BBToSquares(bb)[0]
-
-        return list(filter(lambda piece : piece[1] == sq, self.pieces))
-
+        return [piece for sq in self.BBToSquares(bb) for piece in self.pieces if piece.square == sq]
 
     def SquareToBB(self, square):
         binary = ['0']*64

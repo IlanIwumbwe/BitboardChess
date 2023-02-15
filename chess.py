@@ -45,7 +45,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('3b2k1/1p3p2/p1p5/2P4p/1P2P1p1/5p2/5P2/4RK2 w - - 0 0')
+        self.board.ParseFen('3k4/5ppp/2q5/3p2r1/8/1Q3P2/P4P1P/3R3K w - - 0 1')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.SetBoard()
@@ -349,7 +349,7 @@ if __name__ == '__main__':
 
     choice = input('Would you like to play (C)onsole based, or on the (V)isual board: ').strip()
 
-    if choice == 'V':   
+    if choice == 'V':
         while chess.run:
             chess.VisualBoard()
     else:
