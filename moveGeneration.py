@@ -884,7 +884,7 @@ class GenerateMoves:
 
             if self.board.active_piece == 'b' and self.number_of_attackers <= 1:
                 result &= (self.board.all_whites | self.board.empty)
-                result &= (self.capture_mask | self.push_mask | piece.pinned_mask)
+                result &= (self.capture_mask | self.push_mask)
                 result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
