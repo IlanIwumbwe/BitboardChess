@@ -9,7 +9,7 @@ class Piece:
     def __init__(self, name, square) -> None:
         self.name = name
         self.colour = "w" if self.name.isupper() else "b"
-        self.pinned_mask = (2**64) - 1 # pinned mask changes based on whether or not this piece is pinned, used to filter moves
         self.square : int  = square
+        self.pinned_mask = (2**64) - 1
 
 
