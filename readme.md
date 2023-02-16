@@ -1,7 +1,7 @@
 # Bitboard chess engine:
 
 - Currently implementing chess:
-  To do:
+  - To do:
   * Implement castling
   * Filter for legal chess moves (handling pins, double checks etc) [DONE]
   * Write perft test
