@@ -873,9 +873,13 @@ class GenerateMoves:
 
             if self.board.active_piece == 'w' and self.number_of_attackers <= 1:
                 result &= (self.board.all_blacks | self.board.empty)
-                result &= (self.capture_mask | self.push_mask)
-                result &= piece.pinned_mask
 
+                if self.capture_mask != (2**64) - 1:
+                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                else:
+                    # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
+                    result &= piece.pinned_mask
+         
                 for dest_sq in self.board.BBToSquares(result):
                     self.possible_moves.append(('B', piece.square, dest_sq, '_'))
 
@@ -884,8 +888,12 @@ class GenerateMoves:
 
             if self.board.active_piece == 'b' and self.number_of_attackers <= 1:
                 result &= (self.board.all_whites | self.board.empty)
-                result &= (self.capture_mask | self.push_mask)
-                result &= piece.pinned_mask
+                
+                if self.capture_mask != (2**64) - 1:
+                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                else:
+                    # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
+                    result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
                     self.possible_moves.append(('b', piece.square, dest_sq, '_'))
@@ -895,8 +903,12 @@ class GenerateMoves:
 
             if self.board.active_piece == 'w' and self.number_of_attackers <= 1:
                 result &= (self.board.all_blacks | self.board.empty)
-                result &= (self.capture_mask | self.push_mask)
-                result &= piece.pinned_mask
+
+                if self.capture_mask != (2**64) - 1:
+                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                else:
+                    # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
+                    result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
                     self.possible_moves.append(('R', piece.square, dest_sq, '_'))
@@ -907,8 +919,13 @@ class GenerateMoves:
             if self.board.active_piece == 'b' and self.number_of_attackers <= 1:
                 # check that there's 1 or less attackers,  beacuse then no moves are possible, except king moves out of check
                 result &= (self.board.all_whites | self.board.empty)
-                result &= (self.capture_mask | self.push_mask)
-                result &= piece.pinned_mask
+                
+                if self.capture_mask != (2**64) - 1:
+                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                else:
+                    # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
+                    result &= piece.pinned_mask
+
                 for dest_sq in self.board.BBToSquares(result):
                     self.possible_moves.append(('r', piece.square, dest_sq, '_'))
             
@@ -917,8 +934,12 @@ class GenerateMoves:
 
             if self.board.active_piece == 'w' and self.number_of_attackers <= 1:
                 result &= (self.board.all_blacks | self.board.empty)
-                result &= (self.capture_mask | self.push_mask)
-                result &= piece.pinned_mask
+                
+                if self.capture_mask != (2**64) - 1:
+                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                else:
+                    # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
+                    result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
                     self.possible_moves.append(('Q', piece.square, dest_sq, '_'))
@@ -928,8 +949,12 @@ class GenerateMoves:
 
             if self.board.active_piece == 'b' and self.number_of_attackers <= 1:
                 result &= (self.board.all_whites | self.board.empty)
-                result &= (self.capture_mask | self.push_mask)
-                result &= piece.pinned_mask
+
+                if self.capture_mask != (2**64) - 1:
+                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                else:
+                    # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
+                    result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
                     self.possible_moves.append(('q', piece.square, dest_sq, '_'))
@@ -1016,7 +1041,8 @@ class GenerateMoves:
                 return ray & ~self.RAYS[dir][king_square]
         
     def SetMoveFilters(self):
-        # set capture and push masks
+        # set capture and push masks, these are for non-king pieces
+
         if self.number_of_attackers == 1:
             self.capture_mask = self.board.attackers
 
@@ -1032,6 +1058,10 @@ class GenerateMoves:
         elif self.number_of_attackers == 0:
             self.capture_mask = (2**64) - 1
             self.push_mask = (2**64) - 1
+
+        else:
+            self.capture_mask = np.uint64(0)
+            self.push_mask = np.uint64(0)
 
     def SetPinnedMasks(self):
         """
@@ -1065,7 +1095,7 @@ class GenerateMoves:
                 if piece.name in ['R', 'r', 'Q', 'q'] and possible_mask & enemy_pieces == 0 and possible_mask & non_diagonal_pins in (2**np.arange(64)):
                     pinned_piece = self.board.GetPiecesOnBitboard(possible_mask & non_diagonal_pins)[0]
 
-                    pinned_piece.pinned_mask = possible_mask
+                    pinned_piece.pinned_mask = possible_mask | self.board.SquareToBB(piece.square) # add enemy slider to pinned mask
 
         # diagonal
         for dir in ['NE', 'SE', 'NW', 'SW']:
@@ -1075,7 +1105,7 @@ class GenerateMoves:
                 if piece.name in ['Q', 'q', 'B', 'b'] and possible_mask & enemy_pieces == 0 and possible_mask & diagonal_pins in (2**np.arange(64)):
                     pinned_piece = self.board.GetPiecesOnBitboard(possible_mask & diagonal_pins)[0]
 
-                    pinned_piece.pinned_mask = possible_mask
+                    pinned_piece.pinned_mask = possible_mask | self.board.SquareToBB(piece.square) # add enemy slider to pinned mask
 
 
     def GetAllyKing(self):
