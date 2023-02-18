@@ -11,5 +11,6 @@ class Piece:
         self.colour = "w" if self.name.isupper() else "b"
         self.square : int  = square
         self.pinned_mask = (2**64) - 1
+        self.has_moved = False
 
 

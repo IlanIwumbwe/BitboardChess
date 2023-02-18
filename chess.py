@@ -45,10 +45,10 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.board.ParseFen('r1b2k2/1pp4p/3p2p1/pP1P4/2PN4/8/P5PP/4R1K1 w - - 0 24')
+        self.board.ParseFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
-        self.board.SetBoard()
+        self.board.InitialiseBoard()
 
         self.moveGen = GenerateMoves(self.board)
         self.moveGen.PopulateAttackTables()
@@ -65,8 +65,6 @@ class Chess:
 
         self.possible_drag_piece_moves = []
         self.move = None
-
-        self.game_states = []
 
     def RenderPiece(self, piece_type, square):
         x, y = TOP_X + (IMAGE_SIZE * (square%8)), TOP_Y + (IMAGE_SIZE * (square//8))

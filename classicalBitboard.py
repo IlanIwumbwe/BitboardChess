@@ -104,7 +104,13 @@ class Board:
         for line in [bb[i:i + 8] for i in range(0, 64, 8)]:
             print(line)
 
-    def SetBoard(self):
+    def UpdateBoard(self):
+        self.console_board = ['.'] * 64
+
+        for piece in self.pieces:
+            self.console_board[piece.square] = piece.name
+
+    def InitialiseBoard(self):
         self.pieces = []
         # for rendering
         self.console_board = ['.'] * 64
@@ -113,11 +119,11 @@ class Board:
                           self.black_knights: 'n', self.black_bishops: 'b', self.black_rooks: 'r',
                           self.black_queen: 'q', self.black_king: 'k'}
 
+
         for bb, string in piece_str.items():
             for sq in self.BBToSquares(bb):
                 self.console_board[sq] = string
                 self.pieces.append(Piece(string, sq))
-                # self.pieces.append((string, sq))
 
     def PrintAllBitboards(self):
         for piece_type in ['R', 'N', 'B', 'Q', 'K', 'r', 'n', 'b', 'q', 'k', 'P', 'p']:
@@ -187,8 +193,7 @@ class Board:
             return self.black_bishops
 
     def ParseFen(self, full_fen):
-        self.position_fen, self.active_piece, self.castling_rights, self.en_passant, self.ply, self.moves = full_fen.split(
-            ' ')
+        self.position_fen, self.active_piece, self.castling_rights, self.en_passant, self.ply, self.moves = full_fen.split(' ')
 
         if self.en_passant != '-':
             x = ord(self.en_passant[0])-97
@@ -196,11 +201,13 @@ class Board:
 
             if y == 2:
                 # last move by black pawn 2 down
-                self.move_history.append(('p', 8 + x, 24 + x, 'EP'))
+                black_pawn = Piece('p', x + 8)
+                self.move_history.append((black_pawn, black_pawn.square, black_pawn.square + 16, 'EP'))
 
             elif y == 5:
                 # last move by white pawn 2 up
-                self.move_history.append(('P', 48 + x, 32 + x, 'EP'))
+                white_pawn = Piece('P', x + 48)
+                self.move_history.append((white_pawn, white_pawn.square, white_pawn.square - 16, 'EP'))
 
         self.ply = int(self.ply)
         self.moves = int(self.moves)
@@ -229,6 +236,9 @@ class Board:
 
     def GetPiecesOnBitboard(self, bb):
         return [piece for sq in self.BBToSquares(bb) for piece in self.pieces if piece.square == sq]
+
+    def GetPieceOnSquare(self, square):
+        return list(filter(lambda piece : piece.square == square, self.pieces))[0]
 
     def SquareToBB(self, square):
         binary = ['0']*64
@@ -278,66 +288,103 @@ class Board:
         self.empty]
 
     def MakeMove(self, move):
+        """
+        move structure -> piece_name, initial_sq, final_sq, move_type
+
+        P, 52, 36, _  (normal move)
+        P, 13, 5, Q (promotion move to white queen)
+        P, 18, 11, EP (pawn capture by en-passant)
+        K, 60, 62, Ck (white king kingside castle)
+        K, 60, 57, Cq (white king queenside castle)
+        """
         piece, initial_sq, final_sq, move_type = move
 
-        # remove piece from initial square
-        drag_piece_bitboard = self.GetBitboard(piece)
-        drag_piece_bitboard &= ~self.SquareToBB(initial_sq)
-        self.SetBitboard(piece, drag_piece_bitboard)
+        self.move_history.append(move)
 
-        if self.console_board[final_sq] != '.':
+        # remove piece from initial square
+        drag_piece_bitboard = self.GetBitboard(piece.name)
+        drag_piece_bitboard &= ~self.SquareToBB(initial_sq)
+        self.SetBitboard(piece.name, drag_piece_bitboard)
+
+        drag_piece = piece
+
+        self.pieces.remove(piece)
+
+        if self.IsSquareOccupied(final_sq) == True:
             # remove captured piece from final square
-            captured_piece = self.console_board[final_sq]
-            captured_piece_bitboard = self.GetBitboard(captured_piece)
+            captured_piece = self.GetPieceOnSquare(final_sq)
+            captured_piece_bitboard = self.GetBitboard(captured_piece.name)
             captured_piece_bitboard &= ~self.SquareToBB(final_sq)
-            self.SetBitboard(captured_piece, captured_piece_bitboard)
+            self.SetBitboard(captured_piece.name, captured_piece_bitboard)
+
+            self.pieces.remove(captured_piece)
 
         else:
-            if move_type == 'EP' and piece in ['P', 'p']:
+            if move_type == 'EP' and piece.name in ['P', 'p']:
                 # en-passant capture
 
-                captured_piece = ''
-                captured_final_square = 0
-
+                captured_piece = None
+        
                 if piece == 'P':
                     # white pawn performs EP capture, black pawn is below final square
-                    captured_piece = self.console_board[final_sq + 8]
-                    captured_final_square = final_sq + 8
+                    captured_piece = self.board.GetPieceAtSquare(final_sq + 8)
 
                 elif piece == 'p':
                     # black pawn performs EP capture, white pawn is above final square
-                    captured_piece = self.console_board[final_sq - 8]
-                    captured_final_square = final_sq - 8
+                    captured_piece = self.board.GetPieceAtSquare(final_sq - 8)
 
-                captured_piece_bitboard = self.GetBitboard(captured_piece)
-                captured_piece_bitboard &= ~self.SquareToBB(captured_final_square)
-                self.SetBitboard(captured_piece, captured_piece_bitboard)
+                captured_piece_bitboard = self.GetBitboard(captured_piece.name)
+                captured_piece_bitboard &= ~self.SquareToBB(captured_piece.square)
+                self.SetBitboard(captured_piece.name, captured_piece_bitboard)
+
+                self.pieces.remove(captured_piece)
 
         if move_type != '_' and move_type != 'EP':
-            # promotion
+            # promotion, set bitboard of move type parameter, which is the piece we want to promote to
             promotion_piece_bitboard = self.GetBitboard(move_type)
             promotion_piece_bitboard |= self.SquareToBB(final_sq)
             self.SetBitboard(move_type, promotion_piece_bitboard)
 
-        if move_type == '_' or move_type == 'EP':
-            # move piece to final square in its bitboard
-            drag_piece_bitboard = self.GetBitboard(piece)
-            drag_piece_bitboard |= self.SquareToBB(final_sq)
-            self.SetBitboard(piece, drag_piece_bitboard)
+            # change piece's name and square, set has moved to true
+            drag_piece.name = move_type
+            drag_piece.square = final_sq
+            drag_piece.has_moved = True
 
-        self.move_history.append(move)
+        elif move_type == '_' or move_type == 'EP':
+            # move piece to final square in its bitboard
+            drag_piece_bitboard = self.GetBitboard(piece.name)
+            drag_piece_bitboard |= self.SquareToBB(final_sq)
+            self.SetBitboard(piece.name, drag_piece_bitboard)
+
+            # change piece's square, set has moved to true
+            drag_piece.square = final_sq
+            drag_piece.has_moved = True
+
+        self.pieces.append(drag_piece)
+
+        self.ply += 1
+        self.moves = self.moves + 1 if self.ply % 2 == 0 else self.moves
 
         # after move is made, bitboards have changed, so update all bitboard variables. 
         # update ascii board, this is used for rendering
         self.SetUpBitboards()
-        self.SetBoard()
-        
+        self.UpdateBoard()
+
+    def UnmakeMove(self):
+        """
+        revert move at top of move history list, return to initial state of game
+        """
+
+        piece, initial_sq, final_sq, move_type = self.move_history.pop()
+
+
+
 
 if __name__=='__main__':
     board = Board()
     board.ParseFen('R7/8/5rk1/5p2/7P/1p3KP1/P7/8 b - - 0 0')
     board.FenToBitboards()
-    board.SetBoard()
+    board.InitialiseBoard()
     board.SetUpBitboards()
 
     board.PrintBoard()
