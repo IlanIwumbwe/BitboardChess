@@ -238,7 +238,8 @@ class Board:
         return [piece for sq in self.BBToSquares(bb) for piece in self.pieces if piece.square == sq]
 
     def GetPieceOnSquare(self, square):
-        return list(filter(lambda piece : piece.square == square, self.pieces))[0]
+        if self.IsSquareOccupied(square):
+            return list(filter(lambda piece : piece.square == square, self.pieces))[0]
 
     def SquareToBB(self, square):
         binary = ['0']*64
@@ -294,8 +295,8 @@ class Board:
         P, 52, 36, _  (normal move)
         P, 13, 5, Q (promotion move to white queen)
         P, 18, 11, EP (pawn capture by en-passant)
-        K, 60, 62, Ck (white king kingside castle)
-        K, 60, 57, Cq (white king queenside castle)
+        K, 60, 62, CK (white king kingside castle)
+        K, 60, 57, CQ (white king queenside castle)
         """
         piece, initial_sq, final_sq, move_type = move
 
@@ -305,10 +306,6 @@ class Board:
         drag_piece_bitboard = self.GetBitboard(piece.name)
         drag_piece_bitboard &= ~self.SquareToBB(initial_sq)
         self.SetBitboard(piece.name, drag_piece_bitboard)
-
-        drag_piece = piece
-
-        self.pieces.remove(piece)
 
         if self.IsSquareOccupied(final_sq) == True:
             # remove captured piece from final square
@@ -325,13 +322,13 @@ class Board:
 
                 captured_piece = None
         
-                if piece == 'P':
+                if piece.name == 'P':
                     # white pawn performs EP capture, black pawn is below final square
-                    captured_piece = self.board.GetPieceAtSquare(final_sq + 8)
+                    captured_piece = self.GetPieceOnSquare(final_sq + 8)
 
-                elif piece == 'p':
+                elif piece.name == 'p':
                     # black pawn performs EP capture, white pawn is above final square
-                    captured_piece = self.board.GetPieceAtSquare(final_sq - 8)
+                    captured_piece = self.GetPieceOnSquare(final_sq - 8)
 
                 captured_piece_bitboard = self.GetBitboard(captured_piece.name)
                 captured_piece_bitboard &= ~self.SquareToBB(captured_piece.square)
@@ -339,31 +336,80 @@ class Board:
 
                 self.pieces.remove(captured_piece)
 
-        if move_type != '_' and move_type != 'EP':
+        if move_type != '_' and move_type != 'EP' and 'C' not in move_type:
             # promotion, set bitboard of move type parameter, which is the piece we want to promote to
             promotion_piece_bitboard = self.GetBitboard(move_type)
             promotion_piece_bitboard |= self.SquareToBB(final_sq)
             self.SetBitboard(move_type, promotion_piece_bitboard)
 
             # change piece's name and square, set has moved to true
-            drag_piece.name = move_type
-            drag_piece.square = final_sq
-            drag_piece.has_moved = True
-
-        elif move_type == '_' or move_type == 'EP':
+            piece.name = move_type
+            piece.square = final_sq
+            piece.has_moved = True
+        
+        else:
             # move piece to final square in its bitboard
             drag_piece_bitboard = self.GetBitboard(piece.name)
             drag_piece_bitboard |= self.SquareToBB(final_sq)
             self.SetBitboard(piece.name, drag_piece_bitboard)
 
             # change piece's square, set has moved to true
-            drag_piece.square = final_sq
-            drag_piece.has_moved = True
+            piece.square = final_sq
+            piece.has_moved = True
 
-        self.pieces.append(drag_piece)
+            # perform rook movement for castling move
 
+            if 'C' in move_type:
+                if move_type == 'CK':
+                    rook = self.GetPieceOnSquare(63)
+                    new_rook_position = initial_sq + 1
+
+                    self.white_rooks &= ~self.SquareToBB(rook.square)
+                    self.white_rooks |= self.SquareToBB(new_rook_position)
+
+                    rook.square = new_rook_position
+                    rook.has_moved = True
+
+                    self.castling_rights = self.castling_rights.replace('K', '')             
+
+                elif move_type == 'CQ':
+                    rook = self.GetPieceOnSquare(56)
+                    new_rook_position = initial_sq - 2
+
+                    self.white_rooks &= ~self.SquareToBB(rook.square)
+                    self.white_rooks |= self.SquareToBB(new_rook_position)
+
+                    rook.square = new_rook_position
+                    rook.has_moved = True
+
+                    self.castling_rights = self.castling_rights.replace('Q', '')
+
+                elif move_type == 'Ck':
+                    rook = self.GetPieceOnSquare(7)
+                    new_rook_position = initial_sq + 1
+
+                    self.black_rooks &= ~self.SquareToBB(rook.square)
+                    self.black_rooks |= self.SquareToBB(new_rook_position)
+
+                    rook.square = new_rook_position
+                    rook.has_moved = True
+
+                    self.castling_rights = self.castling_rights.replace('k', '')
+
+                elif move_type == 'Cq':
+                    rook = self.GetPieceOnSquare(0)
+                    new_rook_position = initial_sq - 2
+
+                    self.black_rooks &= ~self.SquareToBB(rook.square)
+                    self.black_rooks |= self.SquareToBB(new_rook_position)
+
+                    rook.square = new_rook_position
+                    rook.has_moved = True
+
+                    self.castling_rights = self.castling_rights.replace('q', '')
+                            
         self.ply += 1
-        self.moves = self.moves + 1 if self.ply % 2 == 0 else self.moves
+        self.moves = self.ply // 2
 
         # after move is made, bitboards have changed, so update all bitboard variables. 
         # update ascii board, this is used for rendering
@@ -382,12 +428,18 @@ class Board:
 
 if __name__=='__main__':
     board = Board()
-    board.ParseFen('R7/8/5rk1/5p2/7P/1p3KP1/P7/8 b - - 0 0')
+    """board.ParseFen('R7/8/5rk1/5p2/7P/1p3KP1/P7/8 b - - 0 0')
     board.FenToBitboards()
     board.InitialiseBoard()
     board.SetUpBitboards()
 
-    board.PrintBoard()
+    board.PrintBoard()"""
+    
+    
+    
+
+
+    board.PrintBitboard(2**57 + 2**58 + 2**59)
 
 
 

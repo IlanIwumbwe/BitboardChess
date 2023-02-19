@@ -29,6 +29,10 @@ class GenerateMoves:
 
         self.opposite_dir = {'N': 'S', 'E': 'W', 'NE': 'SW', 'NW': 'SE', 'SE': 'NW', 'SW': 'NE', 'S': 'N', 'W':'E'}
 
+        self.CASTLING_MASKS = {'CQ': {'R': np.uint64(128), 'd': np.uint64(120)}, 'CK': {'R': np.uint64(1), 'd': np.uint64(14)}, 'Ck': {'r': np.uint(2**56), 'd': np.uint64(2**59 + 2**58 + 2**57)}, 'Cq': {'r': np.uint64(2**63), 'd': np.uint64(2**62 + 2**61 + 2**59 + 2**60)}}
+        self.get_castling_masks = lambda type, *k: [self.CASTLING_MASKS[type][i] for i in k]
+
+
     def PossibleWhitePawnMoves(self):
         rank_8 = self.board.RANKS(8)
         rank_4 = self.board.RANKS(4)
@@ -120,9 +124,9 @@ class GenerateMoves:
         if len(self.board.move_history) >= 1:
             last_move = self.board.move_history[-1]
 
-            piece_type, initial_sq, final_sq, move_type = last_move
+            piece, initial_square, final_sq, _ = last_move
 
-            if piece_type == 'p' and abs(initial_sq-final_sq) == 2*8:
+            if piece.name == 'p' and abs(initial_square-final_sq) == 2*8:
                 ep_file = final_sq%8 + 1
                 # move by black pawn 2 up
 
@@ -260,9 +264,9 @@ class GenerateMoves:
         if len(self.board.move_history) >= 1:
             last_move = self.board.move_history[-1]
 
-            piece_type, initial_sq, final_sq, move_type = last_move
+            piece, initial_square, final_sq, _ = last_move
 
-            if piece_type == 'P' and abs(initial_sq - final_sq) == 2 * 8:
+            if piece.name == 'P' and abs(initial_square - final_sq) == 2 * 8:
                 ep_file = final_sq % 8 + 1
                 # move by white pawn 2 up
 
@@ -1132,6 +1136,51 @@ class GenerateMoves:
     def GetEnemyKing(self):
         return list(filter(lambda piece : self.IsEnemyPiece(piece) and (piece.name == 'K' or piece.name == 'k'), self.board.pieces))[0]
     
+    def AddCastlingMoves(self):
+        """
+        perform all necessary checks, if castling move possible, add it to list of possible moves for ally king
+        """
+        
+        if self.ally_king.colour == 'w' and 'K' in self.board.castling_rights:
+            # white king kingside castling
+            rook, danger = self.get_castling_masks('CK', 'R', 'd')
+            non_movement = self.board.GetPieceOnSquare(63).has_moved == False and self.ally_king.has_moved == False
+            ray = danger & ~self.board.white_king
+
+            if (rook & self.board.white_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
+                # kingside castling possible
+                self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square + 2, 'CK'))
+
+        if self.ally_king.colour == 'w' and 'Q' in self.board.castling_rights:
+            # white king queenside castling
+            rook, danger = self.get_castling_masks('CQ', 'R', 'd')
+            non_movement = self.board.GetPieceOnSquare(56).has_moved == False and self.ally_king.has_moved == False
+            ray = danger & ~self.board.white_king
+
+            if (rook & self.board.white_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
+                # kingside castling possible
+                self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square - 3, 'CQ'))
+
+        if self.ally_king.colour == 'b' and 'k' in self.board.castling_rights:
+            # white king queenside castling
+            rook, danger = self.get_castling_masks('Ck', 'r', 'd')
+            non_movement = self.board.GetPieceOnSquare(7).has_moved == False and self.ally_king.has_moved == False
+            ray = danger & ~self.board.black_king
+
+            if (rook & self.board.black_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
+                # kingside castling possible
+                self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square + 2, 'Ck'))
+
+        if self.ally_king.colour == 'b' and 'q' in self.board.castling_rights:
+            # white king queenside castling
+            rook, danger = self.get_castling_masks('Cq', 'r', 'd')
+            non_movement = self.board.GetPieceOnSquare(0).has_moved == False and self.ally_king.has_moved == False
+            ray = danger & ~self.board.black_king
+
+            if (rook & self.board.black_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
+                # kingside castling possible
+                self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square - 3, 'Cq'))
+
     def GenerateAllPossibleMoves(self):
         # reset attacked squares bitboard, and possible moves list
         self.board.attacked_squares = np.uint64(0)
@@ -1178,6 +1227,9 @@ class GenerateMoves:
 
            
         self.FilterKingMoves()
+
+        if self.board.castling_rights != '' and self.board.attackers == 0:
+            self.AddCastlingMoves()
 
 
 if __name__ == "main":

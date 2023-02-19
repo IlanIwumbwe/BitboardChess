@@ -2,6 +2,7 @@ import pygame
 from classicalBitboard import Board
 from moveGeneration import GenerateMoves
 import numpy as np
+import sys
 
 WIDTH = 650
 HEIGHT = 650
@@ -184,9 +185,6 @@ class Chess:
         self.board.MakeMove(move)
         # add ply, add moves, save game state, save move in move history
 
-        self.board.ply += 1
-        self.board.moves = self.board.ply // 2
-
         self.SwitchActivePiece()
 
     def SwitchActivePiece(self):
@@ -268,6 +266,9 @@ class Chess:
                 self.board.PrintBoard()
 
                 self.run = False
+                pygame.quit()
+                sys.exit()
+                
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.GetPieceUnderMouse() is not None:
                     if not self.dragging:
@@ -275,11 +276,6 @@ class Chess:
                         self.drag_piece = self.GetPieceUnderMouse()
 
                         drag_piece_type, drag_piece_square = self.drag_piece
-
-                        """print('push mask')
-                        self.board.PrintBitboard(self.moveGen.push_mask)
-                        print('capture mask')
-                        self.board.PrintBitboard(self.moveGen.capture_mask)"""
 
                         """
                         which of the possible moves are possible for the piece being dragged?
@@ -305,11 +301,11 @@ class Chess:
                         # not a valid move for drag piece
                         self.dragging = False
                     else:
-                        if self.move[0][3] not in ['_', 'EP']:
+                        if self.move[0][3] not in ['_', 'EP', 'CK', 'CQ', 'Ck', 'Cq']:
                             # pawn promotion
                             self.promoting = True
 
-                        elif self.move[0][3] == '_' or self.move[0][3] == 'EP':
+                        else:
                             # make move, it will be in list form, so index 0
                             self.MakeMove(self.move[0])
                             self.dragging = False
