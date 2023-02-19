@@ -1,10 +1,10 @@
 # Bitboard chess engine:
 
-- Currently implementing chess:
-  - To do:
-  * Implement castling
-  * Filter for legal chess moves (handling pins, double checks etc) [DONE]
-  * Write perft test
+Currently implementing chess:  [DONE? - need perft test]
+  To do:
+  - Implement castling [DONE]
+  - Filter for legal chess moves (handling pins, double checks etc) [DONE]
+  * Write perft test 
   * Start on engine itself
 
 GUI
@@ -16,4 +16,5 @@ ______________
 ![Screenshot from 2022-12-26 22-04-54](https://user-images.githubusercontent.com/56346800/209585725-da41ed24-0293-4eea-be5f-296608778c5d.png)
 
 Bitboards are 64 bit numbers used to represent a chess board. They involve clever bit twiddling tricks to obtain moves 
-quickly. 
+quickly.
+
