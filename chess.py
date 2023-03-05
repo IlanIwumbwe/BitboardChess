@@ -185,13 +185,7 @@ class Chess:
         self.board.MakeMove(move)
         # add ply, add moves, save game state, save move in move history
 
-        self.SwitchActivePiece()
-
-    def SwitchActivePiece(self):
-        if self.board.active_piece == "w":
-            self.board.active_piece = "b"
-        else:
-            self.board.active_piece = "w"
+        self.board.SwitchActivePiece()
 
     @staticmethod
     def AlgebraicToNumber(square):
@@ -268,6 +262,10 @@ class Chess:
                 self.run = False
                 pygame.quit()
                 sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    self.board.UnmakeMove()
                 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.GetPieceUnderMouse() is not None:

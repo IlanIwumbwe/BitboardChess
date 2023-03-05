@@ -1141,40 +1141,40 @@ class GenerateMoves:
         perform all necessary checks, if castling move possible, add it to list of possible moves for ally king
         """
         
-        if self.ally_king.colour == 'w' and 'K' in self.board.castling_rights:
+        if self.ally_king.colour == 'w' and 'K' in self.board.castling_rights and self.board.IsSquareOccupied(63):
             # white king kingside castling
             rook, danger = self.get_castling_masks('CK', 'R', 'd')
-            non_movement = self.board.GetPieceOnSquare(63).has_moved == False and self.ally_king.has_moved == False
+            non_movement = self.board.GetPieceOnSquare(63).times_moved == 0 and self.ally_king.times_moved == 0
             ray = danger & ~self.board.white_king
 
             if (rook & self.board.white_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
                 # kingside castling possible
                 self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square + 2, 'CK'))
 
-        if self.ally_king.colour == 'w' and 'Q' in self.board.castling_rights:
+        if self.ally_king.colour == 'w' and 'Q' in self.board.castling_rights and self.board.IsSquareOccupied(56):
             # white king queenside castling
             rook, danger = self.get_castling_masks('CQ', 'R', 'd')
-            non_movement = self.board.GetPieceOnSquare(56).has_moved == False and self.ally_king.has_moved == False
+            non_movement = self.board.GetPieceOnSquare(56).times_moved == 0 and self.ally_king.times_moved == 0
             ray = danger & ~self.board.white_king
 
             if (rook & self.board.white_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
                 # kingside castling possible
                 self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square - 3, 'CQ'))
 
-        if self.ally_king.colour == 'b' and 'k' in self.board.castling_rights:
+        if self.ally_king.colour == 'b' and 'k' in self.board.castling_rights and self.board.IsSquareOccupied(7):
             # white king queenside castling
             rook, danger = self.get_castling_masks('Ck', 'r', 'd')
-            non_movement = self.board.GetPieceOnSquare(7).has_moved == False and self.ally_king.has_moved == False
+            non_movement = self.board.GetPieceOnSquare(7).times_moved == 0 and self.ally_king.times_moved == 0
             ray = danger & ~self.board.black_king
 
             if (rook & self.board.black_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
                 # kingside castling possible
                 self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square + 2, 'Ck'))
 
-        if self.ally_king.colour == 'b' and 'q' in self.board.castling_rights:
+        if self.ally_king.colour == 'b' and 'q' in self.board.castling_rights and self.board.IsSquareOccupied(0):
             # white king queenside castling
             rook, danger = self.get_castling_masks('Cq', 'r', 'd')
-            non_movement = self.board.GetPieceOnSquare(0).has_moved == False and self.ally_king.has_moved == False
+            non_movement = self.board.GetPieceOnSquare(0).times_moved == 0 and self.ally_king.times_moved == 0
             ray = danger & ~self.board.black_king
 
             if (rook & self.board.black_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
@@ -1230,7 +1230,6 @@ class GenerateMoves:
 
         if self.board.castling_rights != '' and self.board.attackers == 0:
             self.AddCastlingMoves()
-
 
 if __name__ == "main":
     moveGen = GenerateMoves()
