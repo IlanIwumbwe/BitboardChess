@@ -326,7 +326,7 @@ class Board:
             self.pieces.remove(captured_piece)
 
             # add captured piece to move tuple
-            self.move_history[-1] = self.move_history[-1] + (captured_piece,)
+            self.move_history[-1] = self.move_history[-1][:3] + (captured_piece,)
 
         else:
             if move_type == 'EP' and piece.name in ['P', 'p']:
