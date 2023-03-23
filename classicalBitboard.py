@@ -42,8 +42,8 @@ class Board:
         # board_repr
         self.console_board = None
 
-        #pieces
         self.pieces = []
+        self.move_history = []
 
         # from FEN
         self.position_fen = ''
@@ -52,9 +52,6 @@ class Board:
         self.en_passant = ''
         self.ply = ''
         self.moves = ''
-
-        # history
-        self.move_history = []
 
     def FenToBitboards(self):
         # bitboards setup
@@ -109,12 +106,6 @@ class Board:
 
         for piece in self.pieces:
             self.console_board[piece.square] = piece.name
-
-    def SwitchActivePiece(self):
-        if self.active_piece == "w":
-            self.active_piece = "b"
-        else:
-            self.active_piece = "w"
 
     def InitialiseBoard(self):
         self.pieces = []
@@ -198,25 +189,6 @@ class Board:
         elif p_type == 'b':
             return self.black_bishops
 
-    def ParseFen(self, full_fen):
-        self.position_fen, self.active_piece, self.castling_rights, self.en_passant, self.ply, self.moves = full_fen.split(' ')
-
-        if self.en_passant != '-':
-            x = ord(self.en_passant[0])-97
-            y = 8 - int(self.en_passant[1])
-
-            if y == 2:
-                # last move by black pawn 2 down
-                black_pawn = Piece('p', x + 8)
-                self.move_history.append((black_pawn, black_pawn.square, black_pawn.square + 16, 'EP'))
-
-            elif y == 5:
-                # last move by white pawn 2 up
-                white_pawn = Piece('P', x + 48)
-                self.move_history.append((white_pawn, white_pawn.square, white_pawn.square - 16, 'EP'))
-
-        self.ply = int(self.ply)
-        self.moves = int(self.moves)
 
     def SetUpBitboards(self):
         # do not consider kings to prevent illegal captures
@@ -294,269 +266,7 @@ class Board:
         self.black_pawns,
         self.empty]
 
-    def MakeMove(self, move):
-        """
-        move structure -> piece_name, initial_sq, final_sq, move_type
-
-        P, 52, 36, _  (normal move)
-        P, 13, 5, Q (promotion move to white queen)
-        P, 18, 11, EP (pawn capture by en-passant)
-        K, 60, 62, CK (white king kingside castle)
-        K, 60, 57, CQ (white king queenside castle)
-
-        move[3] will change from _ to piece object of captured piece if 
-        captures happens
-        """
-        piece, initial_sq, final_sq, move_type = move
-        
-        self.move_history.append(move)
-
-        # remove piece from initial square
-        drag_piece_bitboard = self.GetBitboard(piece.name)
-        drag_piece_bitboard &= ~self.SquareToBB(initial_sq)
-        self.SetBitboard(piece.name, drag_piece_bitboard)
-
-        if self.IsSquareOccupied(final_sq) == True:
-            # remove captured piece from final square
-            captured_piece = self.GetPieceOnSquare(final_sq)
-            captured_piece_bitboard = self.GetBitboard(captured_piece.name)
-            captured_piece_bitboard &= ~self.SquareToBB(final_sq)
-            self.SetBitboard(captured_piece.name, captured_piece_bitboard)
-
-            self.pieces.remove(captured_piece)
-
-            # add captured piece to move tuple
-            self.move_history[-1] = self.move_history[-1][:3] + (captured_piece,)
-
-        else:
-            if move_type == 'EP' and piece.name in ['P', 'p']:
-                # en-passant capture
-
-                captured_piece = None
-        
-                if piece.name == 'P':
-                    # white pawn performs EP capture, black pawn is below final square
-                    captured_piece = self.GetPieceOnSquare(final_sq + 8)
-
-                elif piece.name == 'p':
-                    # black pawn performs EP capture, white pawn is above final square
-                    captured_piece = self.GetPieceOnSquare(final_sq - 8)
-                
-                # remove captured piece from square
-                captured_piece_bitboard = self.GetBitboard(captured_piece.name)
-                captured_piece_bitboard &= ~self.SquareToBB(captured_piece.square)
-                self.SetBitboard(captured_piece.name, captured_piece_bitboard)
-
-                self.pieces.remove(captured_piece)
-
-                self.move_history[-1] = self.move_history[-1][:3] + (captured_piece,)
-
-        if move_type != '_' and move_type != 'EP' and 'C' not in move_type:
-            # promotion, set bitboard of move type parameter, which is the piece we want to promote to
-            promotion_piece_bitboard = self.GetBitboard(move_type)
-            promotion_piece_bitboard |= self.SquareToBB(final_sq)
-            self.SetBitboard(move_type, promotion_piece_bitboard)
-
-            # change piece's name and square, increased times moved
-            piece.name = move_type
-            piece.square = final_sq
-            piece.times_moved += 1
-            piece.promoted = True
-        
-        else:
-            # move piece to final square in its bitboard
-            drag_piece_bitboard = self.GetBitboard(piece.name)
-            drag_piece_bitboard |= self.SquareToBB(final_sq)
-            self.SetBitboard(piece.name, drag_piece_bitboard)
-
-            # change piece's square, set has moved to true
-            piece.square = final_sq
-            piece.times_moved += 1
-
-            # perform rook movement for castling move
-            if move_type == 'CK':
-                rook = self.GetPieceOnSquare(63)
-                new_rook_position = initial_sq + 1
-
-                self.white_rooks &= ~self.SquareToBB(rook.square)
-                self.white_rooks |= self.SquareToBB(new_rook_position)
-
-                rook.square = new_rook_position
-                rook.time_moved += 1
-
-                self.castling_rights = self.castling_rights.replace('K', '')             
-
-            elif move_type == 'CQ':
-                rook = self.GetPieceOnSquare(56)
-                new_rook_position = initial_sq - 2
-
-                self.white_rooks &= ~self.SquareToBB(rook.square)
-                self.white_rooks |= self.SquareToBB(new_rook_position)
-
-                rook.square = new_rook_position
-                rook.times_moved += 1
-
-                self.castling_rights = self.castling_rights.replace('Q', '')
-
-            elif move_type == 'Ck':
-                rook = self.GetPieceOnSquare(7)
-                new_rook_position = initial_sq + 1
-
-                self.black_rooks &= ~self.SquareToBB(rook.square)
-                self.black_rooks |= self.SquareToBB(new_rook_position)
-
-                rook.square = new_rook_position
-                rook.times_moved += 1
-
-                self.castling_rights = self.castling_rights.replace('k', '')
-
-            elif move_type == 'Cq':
-                rook = self.GetPieceOnSquare(0)
-                new_rook_position = initial_sq - 2
-
-                self.black_rooks &= ~self.SquareToBB(rook.square)
-                self.black_rooks |= self.SquareToBB(new_rook_position)
-
-                rook.square = new_rook_position
-                rook.times_moved += 1
-
-                self.castling_rights = self.castling_rights.replace('q', '')
-                            
-        self.ply += 1
-        self.moves = self.ply // 2
-
-        # after move is made, bitboards have changed, so update all bitboard variables. 
-        # update ascii board, this is used for rendering
-        self.SetUpBitboards()
-        self.UpdateBoard()
-
-    def UnmakeMove(self):
-        """
-        revert move at top of move history list
-        
-        - subtract ply and moves
-        - if castling move, add castling type to castling rights 
-        """
-        if len(self.move_history) >= 1:
-            piece, initial_sq, final_sq, move_type = self.move_history.pop()
-
-            if isinstance(move_type, Piece):
-                # move drag piece to initial square, remove from final square
-                drag_piece_bitboard = self.GetBitboard(piece.name)
-                drag_piece_bitboard &= ~self.SquareToBB(final_sq)
-
-                if piece.promoted:
-                    piece.name = 'P' if piece.name.isupper() else 'p'
-                    piece.square = initial_sq
-                    piece.times_moved -= 1
-                    piece.promoted = False
-
-                    # piece name now correct, can get correct bitboard
-                    drag_piece_bitboard = self.GetBitboard(piece.name)
-                    drag_piece_bitboard |= self.SquareToBB(initial_sq)
-                else:
-                    drag_piece_bitboard |= self.SquareToBB(initial_sq)
-
-                self.SetBitboard(piece.name, drag_piece_bitboard)
-
-                # captures move happened, so restore captured piece
-                captured_piece_bitboard = self.GetBitboard(move_type.name)
-                captured_piece_bitboard |= self.SquareToBB(move_type.square)
-                self.SetBitboard(move_type.name, captured_piece_bitboard)
-
-                self.pieces.append(move_type)
-
-                piece.square = initial_sq
-                piece.times_moved -= 1
-
-            elif move_type != '_' and move_type != 'EP' and 'C' not in move_type:
-                # must be promotion move
-
-                # remove promoted piece from final square
-                prom_piece_bitboard = self.GetBitboard(piece.name)
-                prom_piece_bitboard &= ~self.SquareToBB(final_sq)
-                self.SetBitboard(piece.name, prom_piece_bitboard)
-
-                piece.name = 'P' if piece.name.isupper() else 'p'
-                piece.square = initial_sq
-                piece.times_moved -= 1
-
-                # piece name now correct, can get correct bitboard
-                drag_piece_bitboard = self.GetBitboard(piece.name)
-                drag_piece_bitboard |= self.SquareToBB(initial_sq)
-                self.SetBitboard(piece.name, drag_piece_bitboard)
-
-            else:
-                # must be normal move, movement with no captures, or castling
-
-                # move drag piece back to initial square
-                drag_piece_bitboard = self.GetBitboard(piece.name)
-                drag_piece_bitboard |= self.SquareToBB(initial_sq)
-
-                # remove drag piece from final square
-                drag_piece_bitboard &= ~self.SquareToBB(final_sq)
-
-                self.SetBitboard(piece.name, drag_piece_bitboard)
-
-                piece.square = initial_sq
-                piece.times_moved -= 1
-
-                # if castling move, move rook back to where it has to be, and revert castlng rights
-
-                if move_type == 'CK':
-                    new_rook_position = initial_sq + 1
-                    rook = self.GetPieceOnSquare(new_rook_position)
-                
-                    self.white_rooks &= ~self.SquareToBB(new_rook_position)
-                    self.white_rooks |= self.SquareToBB(63)
-
-                    rook.square = 63
-                    rook.times_moved -= 1
-
-                    self.castling_rights += 'K'            
-
-                elif move_type == 'CQ':
-                    new_rook_position = initial_sq - 2
-                    rook = self.GetPieceOnSquare(new_rook_position)
-                
-                    self.white_rooks &= ~self.SquareToBB(new_rook_position)
-                    self.white_rooks |= self.SquareToBB(56)
-
-                    rook.square = 56
-                    rook.times_moved -= 1
-
-                    self.castling_rights += 'Q'       
-
-                elif move_type == 'Ck':
-                    new_rook_position = initial_sq + 1
-                    rook = self.GetPieceOnSquare(new_rook_position)
-                
-                    self.black_rooks &= ~self.SquareToBB(new_rook_position)
-                    self.black_rooks |= self.SquareToBB(7)
-
-                    rook.square = 7
-                    rook.times_moved -= 1
-
-                    self.castling_rights += 'k'    
-
-                elif move_type == 'Cq':
-                    new_rook_position = initial_sq - 2
-                    rook = self.GetPieceOnSquare(new_rook_position)
-                
-                    self.black_rooks &= ~self.SquareToBB(new_rook_position)
-                    self.black_rooks |= self.SquareToBB(0)
-
-                    rook.square = 0
-                    rook.times_moved -= 1
-
-                    self.castling_rights += 'q'    
-                
-            self.ply -= 1
-            self.moves -= 1 # ?
-            self.SwitchActivePiece()
-        
-            self.SetUpBitboards()
-            self.UpdateBoard()
+    
 
 if __name__=='__main__':
     board = Board()
