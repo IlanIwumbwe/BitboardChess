@@ -12,5 +12,6 @@ class Piece:
         self.square : int  = square
         self.pinned_mask = (2**64) - 1
         self.times_moved : int = 0
+        self.promoted = False
 
 

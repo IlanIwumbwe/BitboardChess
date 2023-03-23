@@ -357,10 +357,11 @@ class Board:
             promotion_piece_bitboard |= self.SquareToBB(final_sq)
             self.SetBitboard(move_type, promotion_piece_bitboard)
 
-            # change piece's name and square, set has moved to true
+            # change piece's name and square, increased times moved
             piece.name = move_type
             piece.square = final_sq
             piece.times_moved += 1
+            piece.promoted = True
         
         else:
             # move piece to final square in its bitboard
@@ -442,8 +443,20 @@ class Board:
             if isinstance(move_type, Piece):
                 # move drag piece to initial square, remove from final square
                 drag_piece_bitboard = self.GetBitboard(piece.name)
-                drag_piece_bitboard |= self.SquareToBB(initial_sq)
                 drag_piece_bitboard &= ~self.SquareToBB(final_sq)
+
+                if piece.promoted:
+                    piece.name = 'P' if piece.name.isupper() else 'p'
+                    piece.square = initial_sq
+                    piece.times_moved -= 1
+                    piece.promoted = False
+
+                    # piece name now correct, can get correct bitboard
+                    drag_piece_bitboard = self.GetBitboard(piece.name)
+                    drag_piece_bitboard |= self.SquareToBB(initial_sq)
+                else:
+                    drag_piece_bitboard |= self.SquareToBB(initial_sq)
+
                 self.SetBitboard(piece.name, drag_piece_bitboard)
 
                 # captures move happened, so restore captured piece
@@ -467,8 +480,6 @@ class Board:
                 piece.name = 'P' if piece.name.isupper() else 'p'
                 piece.square = initial_sq
                 piece.times_moved -= 1
-
-                print(piece.name, piece.square)
 
                 # piece name now correct, can get correct bitboard
                 drag_piece_bitboard = self.GetBitboard(piece.name)

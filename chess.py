@@ -60,11 +60,13 @@ class Chess:
         self.dragging = False
         self.promoting = False
         self.drag_piece = None  # (piece_type, square)
+        self.generate_moves = True
         self.clock = pygame.time.Clock()
 
         self.console_based_run = True
 
         self.possible_drag_piece_moves = []
+        self.past_possible_moves = []
         self.move = None
 
     def RenderPiece(self, piece_type, square):
@@ -252,11 +254,10 @@ class Chess:
             else:
                 self.MakeMove(the_move[0])
 
-
     def VisualBoard(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                print('Final state>>>>>>>>>>>>>>>>>>>>>>>')
+                print('Final state >>>>>>>>>>>>>>>>>>>>>>>')
                 self.board.PrintBoard()
 
                 self.run = False
@@ -265,21 +266,22 @@ class Chess:
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
-                    self.board.UnmakeMove()
-                
+                    self.board.UnmakeMove()    
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.GetPieceUnderMouse() is not None:
                     if not self.dragging:
+                        
                         self.moveGen.GenerateAllPossibleMoves()
-                        self.drag_piece = self.GetPieceUnderMouse()
 
+                        self.drag_piece = self.GetPieceUnderMouse()
                         drag_piece_type, drag_piece_square = self.drag_piece
 
                         """
                         which of the possible moves are possible for the piece being dragged?
                         """
                         self.possible_drag_piece_moves = list(filter(lambda move : move[1] == drag_piece_square, self.moveGen.possible_moves))
-                        
+
                     if self.IsAllyPiece(self.drag_piece[0]):
                         self.dragging = True
 
@@ -307,25 +309,29 @@ class Chess:
                             # make move, it will be in list form, so index 0
                             self.MakeMove(self.move[0])
                             self.dragging = False
+                            
 
             if event.type == pygame.KEYDOWN and self.promoting:
                 # convention -> q, n, r, b
                 if event.key == pygame.K_q:
                     # promote to queen
                     self.MakeMove(self.move[0])
+                    
 
                 elif event.key == pygame.K_n:
                     # promote to knight
                     self.MakeMove(self.move[1])
+                    
 
                 elif event.key == pygame.K_r:
                     # promote to rook
                     self.MakeMove(self.move[2])
+                    
 
                 elif event.key == pygame.K_b:
                     # promote to bishop
                     self.MakeMove(self.move[3])
-
+                    
                 else:
                     self.dragging = False
 

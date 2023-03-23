@@ -1205,26 +1205,12 @@ class GenerateMoves:
         self.PossibleWhitePawnMoves()
         self.PossibleBlackPawnMoves()
 
-        new_possible_moves = []
-
-        # only pawns have moves set
-        for move in self.possible_moves:
-            for piece in self.board.pieces:
-                if piece.pinned_mask != (2**64) - 1:
-                    allowed_squares = self.board.BBToSquares(piece.pinned_mask)
-
-                    if (move[1] == piece.square and move[2] in allowed_squares) or (move[1] != piece.square):
-                        new_possible_moves.append(move)
-                    
-                else:
-                    new_possible_moves.append(move)
-
-        self.possible_moves = new_possible_moves
+        # only pawns have moves set. We need to filter out pawn moves that aren't valid because pawn is pinned. Use pinned mask for this
+        self.possible_moves = list(filter(lambda move : move[2] in self.board.BBToSquares(move[0].pinned_mask), self.possible_moves))
             
         for piece in self.board.pieces:
             if piece.name != 'P' and piece.name != 'p':
                 self.GetPossibleMoves(piece)
-
            
         self.FilterKingMoves()
 
