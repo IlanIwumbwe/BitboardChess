@@ -1,13 +1,12 @@
 # Bitboard chess engine:
 
-![chess_img2](https://user-images.githubusercontent.com/56346800/219978489-f2e89eeb-1feb-47b2-a8f3-099c19d712ba.jpg)
+<img width="210" alt="Screenshot 2023-03-11 110641" src="https://user-images.githubusercontent.com/56346800/224480781-678ed55c-2e52-4064-9e93-d25be41df5dd.png">
 
 Currently implementing chess: [DONE? - need perft test]
   - Implement castling [DONE]
   - Filter for legal chess moves (handling pins, double checks etc)[DONE]
   - Write perft test 
   - Start on engine itself
-
 GUI
 ______________
 ![Screenshot from 2023-02-19 22-20-45](https://user-images.githubusercontent.com/56346800/219978609-54e750e1-35fc-484f-9a16-31a74ad3d315.png)
