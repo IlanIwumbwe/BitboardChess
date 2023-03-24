@@ -47,7 +47,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.ParseFen('K7/8/8/8/8/8/5Q2/7k b - - 0 0')
+        self.ParseFen('r3k1r1/1b2bp1p/3qp3/1pnp4/3B4/4Q1P1/3NPPBP/R4RK1 w - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.InitialiseBoard()
@@ -539,7 +539,7 @@ class Chess:
         self.SwitchActivePiece()
 
         self.previous_possible_moves.append(self.moveGen.possible_moves)
-        self.moveGen.GenerateAllPossibleMoves()        
+        self.moveGen.GenerateAllPossibleMoves()   
 
     def UnmakeMove(self):
         """

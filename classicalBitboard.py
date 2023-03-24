@@ -37,6 +37,8 @@ class Board:
         self.GH_FILE = self.FILES[7] | self.FILES[8]
 
         self.RANKS = lambda rank_number : np.uint64(255 << (rank_number-1) * 8)
+
+        self.all_squares = [self.SquareToBB(i) for i in range(64)]
         
         # board_repr
         self.console_board = None
