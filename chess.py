@@ -19,10 +19,10 @@ BOARD_HEIGHT = SQUARE_SIZE*BOARD_DIMENSION
 TOP_X = (WIDTH-BOARD_WIDTH)//2
 TOP_Y = (HEIGHT-BOARD_HEIGHT)//2
 
-WHITE = (255,51,51) # odd squares colour
+WHITE = (221,240,228)#(255,51,51) # odd squares colour
 BLACK = (0,0,22) # rendering text
-BOARD_GREY = (255, 255, 153)#(170, 70, 70) # # even squares colour
-GREY = (255, 255, 153) # (150, 100, 100)  # background colour
+BOARD_GREY = (40,54,60)# (255, 255, 153)#(170, 70, 70) # # even squares colour
+GREY = (40,54,60) #(255, 255, 153) # (150, 100, 100)  # background colour
 ORANGE = (255, 128, 0) # initial drag piece square
 RED = (255, 251, 51) # nothing
 DARK_GREEN = (87, 200, 77) # possible squares

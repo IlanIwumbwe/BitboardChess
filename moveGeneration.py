@@ -1071,8 +1071,6 @@ class GenerateMoves:
             # setup push mask....
             attacker = self.board.GetPiecesOnBitboard(self.board.attackers)[0]
 
-            print(attacker.name, attacker.square)
-
             # if piece is a slider
             if attacker.name in ['Q', 'R', 'B', 'q', 'r', 'b']:
                 self.push_mask = self.GetPushMask(self.ally_king.square, attacker)
@@ -1101,8 +1099,7 @@ class GenerateMoves:
             enemy_sliders = self.board.GetPiecesOnBitboard(self.board.black_bishops | self.board.black_queen | self.board.black_rooks)
             enemy_pieces = self.board.all_blacks
 
-            non_diagonal_pins = self.board.white_rooks | self.board.white_pawns | self.board.white_queen
-            diagonal_pins = self.board.white_bishops | self.board.white_pawns | self.board.white_queen
+            pins = self.board.all_whites
 
             ep_discovery_pawn = self.board.black_pawns
             ally_pawn = self.board.white_pawns
@@ -1111,8 +1108,7 @@ class GenerateMoves:
             enemy_sliders = self.board.GetPiecesOnBitboard(self.board.white_bishops | self.board.white_queen | self.board.white_rooks)
             enemy_pieces = self.board.all_whites
 
-            non_diagonal_pins = self.board.black_rooks | self.board.black_pawns | self.board.black_queen
-            diagonal_pins = self.board.black_bishops | self.board.black_pawns | self.board.black_queen
+            pins = self.board.all_blacks
 
             ep_discovery_pawn = self.board.white_pawns
             ally_pawn = self.board.black_pawns
@@ -1122,10 +1118,9 @@ class GenerateMoves:
             for piece in enemy_sliders:
                 possible_mask = self.RAYS[self.opposite_dir[dir]][piece.square] & self.RAYS[dir][self.ally_king.square]
                 
-                if piece.name in ['R', 'r', 'Q', 'q'] and (possible_mask & enemy_pieces == 0 or possible_mask & ep_discovery_pawn in self.board.all_squares) and possible_mask & non_diagonal_pins in self.board.all_squares:
-                    pinned_piece = self.board.GetPiecesOnBitboard(possible_mask & non_diagonal_pins)[0]
+                if piece.name in ['R', 'r', 'Q', 'q'] and (possible_mask & enemy_pieces == 0 or possible_mask & ep_discovery_pawn in self.board.all_squares) and possible_mask & pins in self.board.all_squares:
+                    pinned_piece = self.board.GetPiecesOnBitboard(possible_mask & pins)[0]
 
-        
                     if (possible_mask & ep_discovery_pawn in self.board.all_squares) and (possible_mask & ally_pawn != 0):
                         # tricky en-passant pin. Identify en-passant square. Pinned mask for 'pinned' piece is ~ep square 
 
@@ -1136,7 +1131,6 @@ class GenerateMoves:
 
                         pinned_piece.pinned_mask = ~self.board.SquareToBB(ep_square)
 
-                        self.board.PrintBitboard(pinned_piece.pinned_mask)
                     else:
                         pinned_piece.pinned_mask = possible_mask | self.board.SquareToBB(piece.square) # add enemy slider to pinned mask
 
@@ -1145,8 +1139,8 @@ class GenerateMoves:
             for piece in enemy_sliders:
                 possible_mask = self.RAYS[self.opposite_dir[dir]][piece.square] & self.RAYS[dir][self.ally_king.square]
 
-                if piece.name in ['Q', 'q', 'B', 'b'] and possible_mask & enemy_pieces == 0 and possible_mask & diagonal_pins in self.board.all_squares:
-                    pinned_piece = self.board.GetPiecesOnBitboard(possible_mask & diagonal_pins)[0]
+                if piece.name in ['Q', 'q', 'B', 'b'] and possible_mask & enemy_pieces == 0 and possible_mask & pins in self.board.all_squares:
+                    pinned_piece = self.board.GetPiecesOnBitboard(possible_mask & pins)[0]
 
                     pinned_piece.pinned_mask = possible_mask | self.board.SquareToBB(piece.square) # add enemy slider to pinned mask
 
