@@ -5,8 +5,8 @@ import numpy as np
 import sys
 from piece import Piece
 
-WIDTH = 650
-HEIGHT = 650
+WIDTH = 700
+HEIGHT = 700
 
 BOARD_DIMENSION = 8
 
@@ -47,7 +47,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.ParseFen('8/8/8/8/k2Pp2Q/8/8/3K4 b - d3 0 45')
+        self.ParseFen('K7/8/8/8/8/8/5Q2/7k b - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.InitialiseBoard()
@@ -58,6 +58,8 @@ class Chess:
 
         self.win = pygame.display.set_mode((WIDTH, HEIGHT))
         self.run = True
+        self.is_checkmate = False
+        self.is_stalemate = False
         self.dragging = False
         self.promoting = False
         self.drag_piece = None  
@@ -129,6 +131,28 @@ class Chess:
 
                     self.win.blit(font.render(f"{chr(97+file)}", True, BLACK),
                                   (TOP_X + (file*SQUARE_SIZE)+SQUARE_SIZE//2, TOP_Y + BOARD_HEIGHT + 15))
+
+        if self.is_checkmate:
+            self.win.blit(font.render("Checkmate", True, BLACK), (TOP_X , TOP_Y//2))
+
+            if self.board.active_piece == 'w':
+                self.win.blit(font.render("Black wins", True, BLACK), (TOP_X + 100 , TOP_Y//2))
+            else:
+                self.win.blit(font.render("White wins", True, (255, 255, 255)), (TOP_X + 100 , TOP_Y//2))
+
+            x, y = self.moveGen.ally_king.square % 8, self.moveGen.ally_king.square // 8
+
+            pygame.draw.rect(self.win, RED, ( x * SQUARE_SIZE + TOP_X, y * SQUARE_SIZE + TOP_Y, SQUARE_SIZE, SQUARE_SIZE), 0)
+
+        elif self.is_stalemate:
+            self.win.blit(font.render("Stalemate", True, BLACK), (TOP_X , TOP_Y//2))
+
+            enemy_king = self.moveGen.GetEnemyKing()
+
+            x, y = self.moveGen.ally_king.square % 8, self.moveGen.ally_king.square // 8
+
+            pygame.draw.rect(self.win, RED, ( x * SQUARE_SIZE + TOP_X, y * SQUARE_SIZE + TOP_Y, SQUARE_SIZE, SQUARE_SIZE), 0)
+            pygame.draw.rect(self.win, RED, ( enemy_king.square % 8 * SQUARE_SIZE + TOP_X, enemy_king.square // 8 * SQUARE_SIZE + TOP_Y, SQUARE_SIZE, SQUARE_SIZE), 0)
 
         for index in range(64):
             piece_type, square = self.board.console_board[index], index
@@ -272,6 +296,14 @@ class Chess:
             else:
                 self.MakeMove(the_move[0])
 
+    def IsCheckmate(self):
+        king_can_move = len(list(filter(lambda move : move[0] == self.moveGen.ally_king, self.moveGen.possible_moves))) != 0
+
+        return (king_can_move == False and self.board.attackers != 0)
+
+    def IsStalemate(self):
+        return len(self.moveGen.possible_moves) == 0 and self.board.attackers == 0
+
     def VisualBoard(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -349,6 +381,14 @@ class Chess:
                     self.dragging = False
 
                 self.dragging = False
+
+        if self.IsCheckmate():
+            self.dragging = False
+            self.is_checkmate = True
+
+        if self.IsStalemate():
+            self.dragging = False
+            self.is_stalemate = True
 
         self.clock.tick(30)
         self.DrawWindow()
@@ -448,7 +488,7 @@ class Chess:
                 self.board.white_rooks |= self.board.SquareToBB(new_rook_position)
 
                 rook.square = new_rook_position
-                rook.time_moved += 1
+                rook.times_moved += 1
 
                 self.board.castling_rights = self.board.castling_rights.replace('K', '')             
 
@@ -625,6 +665,12 @@ class Chess:
             self.board.ply -= 1
             self.board.moves -= 1 # ?
             self.SwitchActivePiece()
+
+            self.moveGen.ally_king = self.moveGen.GetAllyKing()
+            self.moveGen.GetAttackers()
+
+            self.is_checkmate = False
+            self.is_stalemate = False
         
             self.board.SetUpBitboards()
             self.board.UpdateBoard()

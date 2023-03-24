@@ -24,7 +24,6 @@ class Board:
 
         self.attackers = 0 # bitboard of pieces giving check
         self.king_danger_squares = np.uint64(0)
-        self.ally_king_checked = False
 
         self.CENTRE = np.uint64(103481868288)
         self.EXTENDED_CENTRE = np.uint64(66229406269440)
