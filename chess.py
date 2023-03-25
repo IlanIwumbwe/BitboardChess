@@ -4,6 +4,7 @@ from moveGeneration import GenerateMoves
 import numpy as np
 import sys
 from piece import Piece
+import time
 
 WIDTH = 700
 HEIGHT = 700
@@ -47,7 +48,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.ParseFen('8/4Qr1k/6pp/2p1pp1N/1p2P3/1P1P2P1/5PKP/R7 w - - 0 0')
+        self.ParseFen('8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.InitialiseBoard()
@@ -312,6 +313,19 @@ class Chess:
         for move in self.moveGen.possible_moves:
             self.attacked_squares.append(move[2])
 
+    def MoveGenerationTest(self, depth):
+        if depth == 0:
+            return 1
+        else:
+            num_of_positions = 0
+
+            for move in self.moveGen.possible_moves:
+                self.MakeMove(move)
+                num_of_positions += self.MoveGenerationTest(depth - 1)
+                self.UnmakeMove()
+
+            return num_of_positions
+
     def VisualBoard(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -390,17 +404,8 @@ class Chess:
 
                 self.dragging = False
 
-        if self.IsCheckmate():
-            self.dragging = False
-            self.is_checkmate = True
-
-        if self.IsStalemate():
-            self.dragging = False
-            self.is_stalemate = True
-
         self.clock.tick(30)
         self.DrawWindow()
-
 
     def SwitchActivePiece(self):
         if self.board.active_piece == "w":
@@ -551,11 +556,13 @@ class Chess:
 
         self.SetAttackedSquares()
 
-        print('attacker')
-        self.board.PrintBitboard(self.board.attackers)
+        if self.IsCheckmate():
+            self.dragging = False
+            self.is_checkmate = True
 
-        print('danger sqs')
-        self.board.PrintBitboard(self.board.king_danger_squares)
+        if self.IsStalemate():
+            self.dragging = False
+            self.is_stalemate = True
 
     def UnmakeMove(self):
         """
@@ -573,17 +580,21 @@ class Chess:
                 drag_piece_bitboard &= ~self.board.SquareToBB(final_sq)
 
                 if piece.promoted:
+                    # set bitboard of the piece that the pawn promoted to
+                    self.board.SetBitboard(piece.name, drag_piece_bitboard)
+
                     piece.name = 'P' if piece.name.isupper() else 'p'
                     piece.square = initial_sq
                     piece.times_moved -= 1
                     piece.promoted = False
 
-                    # piece name now correct, can get correct bitboard
+                    # set bitboard of pawn and set it with initial square
                     drag_piece_bitboard = self.board.GetBitboard(piece.name)
                     drag_piece_bitboard |= self.board.SquareToBB(initial_sq)
                 else:
                     drag_piece_bitboard |= self.board.SquareToBB(initial_sq)
 
+                # set bitboard of drag piece to be in initial square
                 self.board.SetBitboard(piece.name, drag_piece_bitboard)
 
                 # captures move happened, so restore captured piece
@@ -597,18 +608,21 @@ class Chess:
                 piece.times_moved -= 1
 
             elif move_type != '_' and move_type != 'EP' and 'C' not in move_type:
-                # must be promotion move
+                # must be promotion move, without captures
 
                 # remove promoted piece from final square
-                prom_piece_bitboard = self.board.GetBitboard(piece.name)
-                prom_piece_bitboard &= ~self.board.SquareToBB(final_sq)
-                self.board.SetBitboard(piece.name, prom_piece_bitboard)
+                drag_piece_bitboard = self.board.GetBitboard(piece.name)
+                drag_piece_bitboard &= ~self.board.SquareToBB(final_sq)
+
+                # set bitboard of the piece that the pawn promoted to
+                self.board.SetBitboard(piece.name, drag_piece_bitboard)
 
                 piece.name = 'P' if piece.name.isupper() else 'p'
                 piece.square = initial_sq
                 piece.times_moved -= 1
+                piece.promoted = False
 
-                # piece name now correct, can get correct bitboard
+                # set bitboard of pawn and set it with initial square
                 drag_piece_bitboard = self.board.GetBitboard(piece.name)
                 drag_piece_bitboard |= self.board.SquareToBB(initial_sq)
                 self.board.SetBitboard(piece.name, drag_piece_bitboard)
@@ -700,11 +714,25 @@ class Chess:
 if __name__ == '__main__':
     chess = Chess()
 
-    choice = input('Would you like to play (C)onsole based, or on the (V)isual board: ').strip()
+    choice = input('Would you like to play (C)onsole based, or on the (V)isual board or (T)est: ').strip()
 
     if choice == 'V':
         while chess.run:
             chess.VisualBoard()
+
+    elif choice == 'T':
+        pygame.quit()
+
+        depth = int(input('Depth limit: '))    
+
+        print(f'Testing on: {chess.board.position_fen}') 
+
+        for d in range(depth+1):
+            start = time.time()
+            print(f'Depth: {d} | Num of positions: {chess.MoveGenerationTest(d)}')   
+            end = time.time()  
+            print(f"Time taken: {end - start} seconds")
+
     else:
         pygame.quit()
 

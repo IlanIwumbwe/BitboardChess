@@ -856,7 +856,9 @@ class GenerateMoves:
 
             elif self.board.active_piece == 'w' and self.number_of_attackers <= 1:
                 # filter ally move
-                attack_set = attack_set & (self.capture_mask | self.push_mask | self.board.all_blacks | self.board.empty)
+                attack_set &= (self.board.all_blacks | self.board.empty)
+                attack_set &= (self.capture_mask | self.push_mask)
+                attack_set &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(attack_set):
                     self.possible_moves.append((piece, piece.square, dest_sq, '_'))
@@ -869,7 +871,9 @@ class GenerateMoves:
 
             elif self.board.active_piece == 'b' and self.number_of_attackers <= 1:
                 # filter ally move
-                attack_set = attack_set & (self.capture_mask | self.push_mask | self.board.all_whites | self.board.empty)
+                attack_set &= (self.board.all_whites | self.board.empty)
+                attack_set &= (self.capture_mask | self.push_mask)
+                attack_set &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(attack_set):
                     self.possible_moves.append((piece, piece.square, dest_sq, '_'))
