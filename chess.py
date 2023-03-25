@@ -19,10 +19,10 @@ BOARD_HEIGHT = SQUARE_SIZE*BOARD_DIMENSION
 TOP_X = (WIDTH-BOARD_WIDTH)//2
 TOP_Y = (HEIGHT-BOARD_HEIGHT)//2
 
-WHITE = (221,240,228)#(255,51,51) # odd squares colour
+WHITE = (40,54,60)#(221,240,228)#(255,51,51) # odd squares colour
 BLACK = (0,0,22) # rendering text
-BOARD_GREY = (40,54,60)# (255, 255, 153)#(170, 70, 70) # # even squares colour
-GREY = (40,54,60) #(255, 255, 153) # (150, 100, 100)  # background colour
+BOARD_GREY =(221,240,228) #(40,54,60)# (255, 255, 153)#(170, 70, 70) # # even squares colour
+GREY = (221,240,228)#(40,54,60) #(255, 255, 153) # (150, 100, 100)  # background colour
 ORANGE = (255, 128, 0) # initial drag piece square
 RED = (255, 251, 51) # nothing
 DARK_GREEN = (87, 200, 77) # possible squares
@@ -47,7 +47,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.ParseFen('r3k1r1/1b2bp1p/3qp3/1pnp4/3B4/4Q1P1/3NPPBP/R4RK1 w - - 0 0')
+        self.ParseFen('8/4Qr1k/6pp/2p1pp1N/1p2P3/1P1P2P1/5PKP/R7 w - - 0 0')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.InitialiseBoard()
@@ -72,6 +72,7 @@ class Chess:
 
         self.previous_possible_moves = []
         self.drag_piece_possible_moves = []
+        self.attacked_squares = []
 
         # populate initial set of possible moves
         self.moveGen.GenerateAllPossibleMoves()
@@ -298,11 +299,18 @@ class Chess:
 
     def IsCheckmate(self):
         king_can_move = len(list(filter(lambda move : move[0] == self.moveGen.ally_king, self.moveGen.possible_moves))) != 0
+        attacker_attacked = all([sq in self.attacked_squares for sq in self.board.BBToSquares(self.board.attackers)])
 
-        return (king_can_move == False and self.board.attackers != 0)
+        return (king_can_move == False and self.board.attackers != 0 and attacker_attacked == False)
 
     def IsStalemate(self):
         return len(self.moveGen.possible_moves) == 0 and self.board.attackers == 0
+    
+    def SetAttackedSquares(self):
+        self.attacked_squares = []
+
+        for move in self.moveGen.possible_moves:
+            self.attacked_squares.append(move[2])
 
     def VisualBoard(self):
         for event in pygame.event.get():
@@ -541,6 +549,14 @@ class Chess:
         self.previous_possible_moves.append(self.moveGen.possible_moves)
         self.moveGen.GenerateAllPossibleMoves()   
 
+        self.SetAttackedSquares()
+
+        print('attacker')
+        self.board.PrintBitboard(self.board.attackers)
+
+        print('danger sqs')
+        self.board.PrintBitboard(self.board.king_danger_squares)
+
     def UnmakeMove(self):
         """
         revert move at top of move history list
@@ -676,6 +692,8 @@ class Chess:
             self.board.UpdateBoard()
 
             self.moveGen.possible_moves = self.previous_possible_moves.pop()
+
+            self.SetAttackedSquares()
     
 
 

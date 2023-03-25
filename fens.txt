@@ -68,3 +68,7 @@ easiest stalemate
 
 # puzzles:
 r3k1r1/1b2bp1p/3qp3/1pnp4/3B4/4Q1P1/3NPPBP/R4RK1 w - - 0 0 
+5b2/1p2p1n1/pK1pP1R1/P2kr3/1Q2Np2/N4p1q/b1PPnP2/B7 w - - 0 0   #45
+5r2/3n3k/3q2pp/1Qp1pp1N/1p2P3/1P1P2P1/5PKP/R7 w - - 0 0 #19
+
+8/4Qr1k/6pp/2p1pp1N/1p2P3/1P1P2P1/5PKP/R7 w - - 0 0 #  bug test 
