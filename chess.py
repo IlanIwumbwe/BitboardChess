@@ -48,7 +48,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.ParseFen('8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0')
+        self.ParseFen('rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.InitialiseBoard()
@@ -242,6 +242,12 @@ class Chess:
 
         return 8*rank_index + file_index
 
+    @staticmethod
+    def NumbertoAlgebraic(s):
+        x, y = s%8, s//8
+
+        return f"{chr(x+97)}{8-y}"
+    
     def ConsoleBasedBoard(self):
         self.board.PrintBoard()
 
@@ -313,17 +319,24 @@ class Chess:
         for move in self.moveGen.possible_moves:
             self.attacked_squares.append(move[2])
 
-    def MoveGenerationTest(self, depth):
-        if depth == 0:
+    def MoveGenerationTest(self, depth, root=True):
+        if depth == 0 or self.is_stalemate or self.is_stalemate:
             return 1
         else:
             num_of_positions = 0
 
             for move in self.moveGen.possible_moves:
                 self.MakeMove(move)
-                num_of_positions += self.MoveGenerationTest(depth - 1)
-                self.UnmakeMove()
+                p = self.MoveGenerationTest(depth - 1, False)
+                if root:
+                    if move[3] not in ['Q', 'R', 'B', 'N', 'q', 'r', 'b', 'n']:
+                        print(f"{self.NumbertoAlgebraic(move[1])}{self.NumbertoAlgebraic(move[2])}: {p}")
+                    else:
+                        print(f"{self.NumbertoAlgebraic(move[1])}{self.NumbertoAlgebraic(move[2])}{move[3]}: {p}")
 
+                num_of_positions += p
+                self.UnmakeMove()
+                
             return num_of_positions
 
     def VisualBoard(self):
@@ -571,7 +584,7 @@ class Chess:
         - subtract ply and moves
         - if castling move, add castling type to castling rights 
         """
-        if len(self.board.move_history) >= 1:
+        if len(self.previous_possible_moves) >= 1:
             piece, initial_sq, final_sq, move_type = self.board.move_history.pop()
 
             if isinstance(move_type, Piece):
@@ -727,11 +740,10 @@ if __name__ == '__main__':
 
         print(f'Testing on: {chess.board.position_fen}') 
 
-        for d in range(depth+1):
-            start = time.time()
-            print(f'Depth: {d} | Num of positions: {chess.MoveGenerationTest(d)}')   
-            end = time.time()  
-            print(f"Time taken: {end - start} seconds")
+        start = time.time()
+        print(f'Depth: {depth} | Num of positions: {chess.MoveGenerationTest(depth)}')   
+        end = time.time()  
+        print(f"Time taken: {end - start} seconds")
 
     else:
         pygame.quit()

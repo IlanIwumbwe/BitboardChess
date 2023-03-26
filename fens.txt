@@ -60,10 +60,10 @@ r1b2k2/1pp4p/3p2p1/pP1P4/2PN4/8/P5PP/4R1K1 w - - 0 24
 
 # test positions:
 
-8/8/8/8/k2Pp2Q/8/8/3K4 b - d3 45
+8/8/8/8/k2Pp2Q/8/8/3K4 b - d3 4 5
 en passant capture leading to ally king in check. Both pawns in attack ray
 
-K7/8/8/8/8/8/5Q2/7k b _ _ 0 0 
+K7/8/8/8/8/8/5Q2/7k b - - 0 0 
 easiest stalemate
 
 # puzzles:
@@ -74,3 +74,11 @@ r3k1r1/1b2bp1p/3qp3/1pnp4/3B4/4Q1P1/3NPPBP/R4RK1 w - - 0 0
 8/4Qr1k/6pp/2p1pp1N/1p2P3/1P1P2P1/5PKP/R7 w - - 0 0 #  bug test 
 r3k3/1p3p2/p2q2p1/bn3P2/1N2PQP1/PB6/3K1R1r/3R4 w - - 9 9  # Sebastian Lague video position
 rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8  # test pos 2
+8/8/8/2k5/3Pp3/8/8/4K3 b - d3 0 0  
+
+8/8/8/1k6/3Pp3/8/8/4KQ2 b - d3 0 0
+
+
+
+
+
