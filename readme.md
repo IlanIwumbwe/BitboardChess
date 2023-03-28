@@ -28,4 +28,5 @@ I start by parsing a FEN string to initialise the board, then I make my first bi
 
 Perft test results:
 ___________________
-All positions work, except those originating from pawn promotion. I'm currently working on making some kind of tool that can allow me to search specific parts of the search tree, so that I can target these promotion moves and see what the problem is. 
+
+Looks good. Will keep testing until I'm satisfied enough that there's 'no' bugs in move generation
