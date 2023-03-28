@@ -48,7 +48,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.ParseFen('rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8')
+        self.ParseFen('r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.InitialiseBoard()
@@ -248,61 +248,61 @@ class Chess:
 
         return f"{chr(x+97)}{8-y}"
     
-    def ConsoleBasedBoard(self):
-        self.board.PrintBoard()
+    def ConsoleBasedBoard(self, size="S", AImove=None):
+        if AImove == None:
+            print(f"Turn: {self.board.active_piece}")
+            self.board.PrintBoard(size)
 
-        print("Move types: '_'(normal move), 'EP'(en-passant), replace string with 'Q,N,R,B,q,n,r,b' for promotion moves")
-        print("____________________________________________\nType \'Q\' to quit")
-        move = input("Enter the move you\'d like to make (piece_type, from, to, move_type): ")
+            move = input("Move (piece_type, from, to, move_type): ")
 
-        while not move:
-            print("Move types: '_'(normal move), 'EP'(en-passant), replace string with 'Q,N,R,B,q,n,r,b' for promotion moves")
-            print('____________________________________________\nType \'Q\' to quit')
-            move = input('Enter the move you\'d like to make (piece_type, from, to, move_type): ')
-        
-        if move == 'Q':
-            self.console_based_run = False 
-
-        elif len(move) > 0:
-            move = move.split(',')
-
-            piece_type = move[0]
-            initial_sq = self.AlgebraicToNumber(move[1])
-            dest_sq = self.AlgebraicToNumber(move[2])
-            move_type = move[3]
-
-            self.moveGen.GenerateAllPossibleMoves()
-
-            self.board.possible_moves = list(filter(lambda move : move[1] == initial_sq, self.moveGen.possible_moves))
-
-            the_move = list(filter(lambda move: move[0] == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
-            move[2] == dest_sq and move[3] == move_type, self.moveGen.possible_moves))
- 
-            while len(the_move) == 0 and move != 'Q':
-                # is the entered move valid?
-                print('The move you entered is not valid')
-
-                move = input('Enter the move you\'d like to make (piece_type, from, to, move_type): ')
-
-                if move != 'Q':
-                    move = move.split(',')
-
-                    piece_type = move[0]
-                    initial_sq = self.AlgebraicToNumber(move[1])
-                    dest_sq = self.AlgebraicToNumber(move[2])
-                    move_type = move[3]
-
-                    self.moveGen.GenerateAllPossibleMoves()
-
-                    # self.possible_drag_piece_moves = list(filter(lambda move : move[1] == initial_sq, self.moveGen.possible_moves))
-        
-                    the_move = list(filter(lambda move: move[0] == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
-                    move[2] == dest_sq and move[3] == move_type, self.moveGen.possible_moves))
+            while not move:
+                print("Move types:\n - '_'(normal move)\n - 'EP'(en-passant)\n - 'Q,N,R,B,q,n,r,b' for promotion moves\n - 'CQ, CK, cq, ck for white and black castling respectively\n")
+                print('Type \'Q\' to quit')
+                move = input("Move (piece_type, from, to, move_type): ")
             
             if move == 'Q':
-                self.console_based_run = False
-            else:
-                self.MakeMove(the_move[0])
+                self.console_based_run = False 
+            
+            elif move == 'U':
+                self.UnmakeMove()
+
+            elif len(move) > 0:
+                move = move.split(' ')
+
+                piece_type = move[0]
+                initial_sq = self.AlgebraicToNumber(move[1])
+                dest_sq = self.AlgebraicToNumber(move[2])
+                move_type = move[3]
+
+                the_move = list(filter(lambda move: move[0].name == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
+                move[2] == dest_sq and move[3] == move_type, self.moveGen.possible_moves))
+    
+                while len(the_move) == 0 and move != 'Q':
+                    # is the entered move valid?
+                    print('The move you entered is not valid')
+
+                    move = input('Enter the move you\'d like to make (piece_type, from, to, move_type): ')
+
+                    if move != 'Q':
+                        move = move.split(' ')
+
+                        piece_type = move[0]
+                        initial_sq = self.AlgebraicToNumber(move[1])
+                        dest_sq = self.AlgebraicToNumber(move[2])
+                        move_type = move[3]
+
+                        the_move = list(filter(lambda move: move[0].name == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
+                        move[2] == dest_sq and move[3] == move_type, self.moveGen.possible_moves))
+                
+                if move == 'Q':
+                    self.console_based_run = False
+                else:
+                    print(' '.join(move))
+                    self.MakeMove(the_move[0])
+        else:
+            print(f"Turn: {self.board.active_piece}")
+            self.MakeMove(AImove)
+            self.board.PrintBoard(size)
 
     def IsCheckmate(self):
         king_can_move = len(list(filter(lambda move : move[0] == self.moveGen.ally_king, self.moveGen.possible_moves))) != 0
@@ -326,7 +326,7 @@ class Chess:
             num_of_positions = 0
 
             for move in self.moveGen.possible_moves:
-                self.MakeMove(move)
+                self.ConsoleBasedBoard(AImove=move)
                 p = self.MoveGenerationTest(depth - 1, False)
                 if root:
                     if move[3] not in ['Q', 'R', 'B', 'N', 'q', 'r', 'b', 'n']:
@@ -576,6 +576,7 @@ class Chess:
         if self.IsStalemate():
             self.dragging = False
             self.is_stalemate = True
+            
 
     def UnmakeMove(self):
         """
@@ -737,7 +738,6 @@ if __name__ == '__main__':
         pygame.quit()
 
         depth = int(input('Depth limit: '))    
-
         print(f'Testing on: {chess.board.position_fen}') 
 
         start = time.time()
@@ -748,5 +748,10 @@ if __name__ == '__main__':
     else:
         pygame.quit()
 
+        size = input("(L)arge or (S)mall board: ").strip().upper()
+
+        while size != "S" and size != "L":
+            size = input("(L)arge or (S)mall board: ").strip().upper()
+
         while chess.console_based_run:
-            chess.ConsoleBasedBoard()
+            chess.ConsoleBasedBoard(size)

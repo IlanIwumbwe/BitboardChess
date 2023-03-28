@@ -128,15 +128,27 @@ class Board:
             print(piece_type + "_______")
             self.PrintBitboard(self.GetBitboard(piece_type))
 
-    def PrintBoard(self):
-        print('  ________')
-        for r_ind, rank in enumerate([self.console_board[i:i + 8] for i in range(0, 64, 8)]):
-            self.console_board += rank
+    def PrintBoard(self, size="S"):
 
-            print(f'{8 - r_ind}|' + ''.join(rank) + '|')
+        if size == "S":
+            print('  ________')
+            for r_ind, rank in enumerate([self.console_board[i:i + 8] for i in range(0, 64, 8)]):
+                self.console_board += rank
 
-            if r_ind == 7:
-                print('  '+''.join([chr(97+i) for i in range(8)]))
+                print(f'{8 - r_ind}|' + ''.join(rank) + '|')
+
+                if r_ind == 7:
+                    print('  '+''.join([chr(97+i) for i in range(8)]))
+        else:
+           for r_ind, rank in enumerate([self.console_board[i:i + 8] for i in range(0, 64, 8)]):
+                print(" +---+---+---+---+---+---+---+---+")
+                self.console_board += rank
+
+                print(f'{8 - r_ind}| ' + ' | '.join(rank) + ' |')
+
+                if r_ind == 7:
+                    print(" +---+---+---+---+---+---+---+---+")
+                    print('   ' + '   '.join([chr(97+i) for i in range(8)]) + '  ')
 
     def SetBitboard(self, p_type, bb):
         if p_type == 'P':
