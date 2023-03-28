@@ -48,7 +48,7 @@ SPRITES = {'K_w':pygame.image.load('./pieces/K_w.png'),
 class Chess:
     def __init__(self):
         self.board = Board()
-        self.ParseFen('r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10')
+        self.ParseFen('r3k3/1p3p2/p2q2p1/bn3P2/1N2PQP1/PB6/3K1R1r/3R4 w - - 9 9')
         self.board.FenToBitboards()
         self.board.SetUpBitboards()
         self.board.InitialiseBoard()
@@ -168,7 +168,7 @@ class Chess:
             SQUARE_SIZE), 0)
 
             for move in self.drag_piece_possible_moves:
-                poss_sq = move[2]
+                poss_sq = move.dest
                 x, y = poss_sq%8, poss_sq//8
                 if (x+y)%2 == 0:
                     pygame.draw.rect(self.win, LIGHT_GREEN, ( x * SQUARE_SIZE + TOP_X, y * SQUARE_SIZE + TOP_Y, SQUARE_SIZE, SQUARE_SIZE), 0)
@@ -269,13 +269,13 @@ class Chess:
             elif len(move) > 0:
                 move = move.split(' ')
 
-                piece_type = move[0]
-                initial_sq = self.AlgebraicToNumber(move[1])
-                dest_sq = self.AlgebraicToNumber(move[2])
-                move_type = move[3]
+                piece_type = move.piece
+                initial_sq = self.AlgebraicToNumber(move.initial)
+                dest_sq = self.AlgebraicToNumber(move.dest)
+                move_type = move.type
 
-                the_move = list(filter(lambda move: move[0].name == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
-                move[2] == dest_sq and move[3] == move_type, self.moveGen.possible_moves))
+                the_move = list(filter(lambda move: move.piece.name == piece_type and self.IsAllyPiece(piece_type) and move.initial == initial_sq and 
+                move.dest == dest_sq and move.type == move_type, self.moveGen.possible_moves))
     
                 while len(the_move) == 0 and move != 'Q':
                     # is the entered move valid?
@@ -286,13 +286,13 @@ class Chess:
                     if move != 'Q':
                         move = move.split(' ')
 
-                        piece_type = move[0]
-                        initial_sq = self.AlgebraicToNumber(move[1])
-                        dest_sq = self.AlgebraicToNumber(move[2])
-                        move_type = move[3]
+                        piece_type = move.piece
+                        initial_sq = self.AlgebraicToNumber(move.initial)
+                        dest_sq = self.AlgebraicToNumber(move.dest)
+                        move_type = move.type
 
-                        the_move = list(filter(lambda move: move[0].name == piece_type and self.IsAllyPiece(piece_type) and move[1] == initial_sq and 
-                        move[2] == dest_sq and move[3] == move_type, self.moveGen.possible_moves))
+                        the_move = list(filter(lambda move: move.piece.name == piece_type and self.IsAllyPiece(piece_type) and move.initial == initial_sq and 
+                        move.dest == dest_sq and move.type == move_type, self.moveGen.possible_moves))
                 
                 if move == 'Q':
                     self.console_based_run = False
@@ -305,7 +305,7 @@ class Chess:
             self.board.PrintBoard(size)
 
     def IsCheckmate(self):
-        king_can_move = len(list(filter(lambda move : move[0] == self.moveGen.ally_king, self.moveGen.possible_moves))) != 0
+        king_can_move = len(list(filter(lambda move : move.piece == self.moveGen.ally_king, self.moveGen.possible_moves))) != 0
         attacker_attacked = all([sq in self.attacked_squares for sq in self.board.BBToSquares(self.board.attackers)])
 
         return (king_can_move == False and self.board.attackers != 0 and attacker_attacked == False)
@@ -317,22 +317,22 @@ class Chess:
         self.attacked_squares = []
 
         for move in self.moveGen.possible_moves:
-            self.attacked_squares.append(move[2])
+            self.attacked_squares.append(move.dest)
 
     def MoveGenerationTest(self, depth, root=True):
-        if depth == 0 or self.is_stalemate or self.is_stalemate:
+        if depth == 0:
             return 1
         else:
             num_of_positions = 0
 
             for move in self.moveGen.possible_moves:
-                self.ConsoleBasedBoard(AImove=move)
+                self.MakeMove(move)
                 p = self.MoveGenerationTest(depth - 1, False)
                 if root:
-                    if move[3] not in ['Q', 'R', 'B', 'N', 'q', 'r', 'b', 'n']:
-                        print(f"{self.NumbertoAlgebraic(move[1])}{self.NumbertoAlgebraic(move[2])}: {p}")
+                    if move.type not in ['Q', 'R', 'B', 'N', 'q', 'r', 'b', 'n']:
+                        print(f"{self.NumbertoAlgebraic(move.initial)}{self.NumbertoAlgebraic(move.dest)}: {p}")
                     else:
-                        print(f"{self.NumbertoAlgebraic(move[1])}{self.NumbertoAlgebraic(move[2])}{move[3]}: {p}")
+                        print(f"{self.NumbertoAlgebraic(move.initial)}{self.NumbertoAlgebraic(move.dest)}{move.type}: {p}")
 
                 num_of_positions += p
                 self.UnmakeMove()
@@ -363,7 +363,7 @@ class Chess:
                         """
                         which of the possible moves are possible for the piece being dragged?
                         """
-                        self.drag_piece_possible_moves = list(filter(lambda move : move[1] == drag_piece_square, self.moveGen.possible_moves))
+                        self.drag_piece_possible_moves = list(filter(lambda move : move.initial == drag_piece_square, self.moveGen.possible_moves))
 
                     if self.IsAllyPiece(self.drag_piece[0]):
                         self.dragging = True
@@ -374,17 +374,17 @@ class Chess:
                 if under_mouse is not None and self.dragging:
                     # try to find move that corresponds to this final square
                     if isinstance(under_mouse, int):
-                        self.move = list(filter(lambda move : move[2] == under_mouse, self.drag_piece_possible_moves))
+                        self.move = list(filter(lambda move : move.dest == under_mouse, self.drag_piece_possible_moves))
                     else:
                         """under the mouse is an opponent piece we can capture, check whether final square of this move 
                         matches initial square of opponent piece under mouse"""
-                        self.move = list(filter(lambda move: move[2] == under_mouse[1], self.drag_piece_possible_moves))
+                        self.move = list(filter(lambda move: move.dest == under_mouse[1], self.drag_piece_possible_moves))
 
                     if len(self.move) == 0:
                         # not a valid move for drag piece
                         self.dragging = False
                     else:
-                        if self.move[0][3] not in ['_', 'EP', 'CK', 'CQ', 'Ck', 'Cq']:
+                        if self.move[0].type not in ['_', 'EP', 'CK', 'CQ', 'Ck', 'Cq']:
                             # pawn promotion
                             self.promoting = True
 
@@ -439,7 +439,7 @@ class Chess:
         move[3] will change from _ to piece object of captured piece if 
         captures happens
         """
-        piece, initial_sq, final_sq, move_type = move
+        piece, initial_sq, final_sq, move_type = move.piece, move.initial, move.dest, move.type
         
         self.board.move_history.append(move)
 
@@ -457,8 +457,9 @@ class Chess:
 
             self.board.pieces.remove(captured_piece)
 
-            # add captured piece to move tuple
-            self.board.move_history[-1] = self.board.move_history[-1][:3] + (captured_piece,)
+            # set captured piece
+            self.board.move_history[-1].captured_piece = captured_piece
+            #self.board.move_history[-1] = self.board.move_history[-1][:3] + (captured_piece,)
 
         else:
             if move_type == 'EP' and piece.name in ['P', 'p']:
@@ -481,7 +482,7 @@ class Chess:
 
                 self.board.pieces.remove(captured_piece)
 
-                self.board.move_history[-1] = self.board.move_history[-1][:3] + (captured_piece,)
+                self.board.move_history[-1].captured_piece = captured_piece
 
         if move_type != '_' and move_type != 'EP' and 'C' not in move_type:
             # promotion, set bitboard of move type parameter, which is the piece we want to promote to
@@ -493,7 +494,8 @@ class Chess:
             piece.name = move_type
             piece.square = final_sq
             piece.times_moved += 1
-            piece.promoted = True
+            #piece.promoted = True
+            self.board.move_history[-1].is_promotion_move = True
         
         else:
             # move piece to final square in its bitboard
@@ -576,7 +578,7 @@ class Chess:
         if self.IsStalemate():
             self.dragging = False
             self.is_stalemate = True
-            
+
 
     def UnmakeMove(self):
         """
@@ -586,21 +588,23 @@ class Chess:
         - if castling move, add castling type to castling rights 
         """
         if len(self.previous_possible_moves) >= 1:
-            piece, initial_sq, final_sq, move_type = self.board.move_history.pop()
+            past_move = self.board.move_history.pop()
+            piece, initial_sq, final_sq, move_type, is_promotion_move = past_move.piece, past_move.initial, past_move.dest, past_move.type, past_move.is_promotion_move
 
-            if isinstance(move_type, Piece):
-                # move drag piece to initial square, remove from final square
+            if past_move.captured_piece != None:
+                # remove from final square
                 drag_piece_bitboard = self.board.GetBitboard(piece.name)
                 drag_piece_bitboard &= ~self.board.SquareToBB(final_sq)
 
-                if piece.promoted:
-                    # set bitboard of the piece that the pawn promoted to
+                if is_promotion_move:
+                    # set bitboard of the piece that was promoted to, to register
+                    # removal of piece from final square
                     self.board.SetBitboard(piece.name, drag_piece_bitboard)
 
                     piece.name = 'P' if piece.name.isupper() else 'p'
                     piece.square = initial_sq
                     piece.times_moved -= 1
-                    piece.promoted = False
+                    #piece.promoted = False
 
                     # set bitboard of pawn and set it with initial square
                     drag_piece_bitboard = self.board.GetBitboard(piece.name)
@@ -612,11 +616,11 @@ class Chess:
                 self.board.SetBitboard(piece.name, drag_piece_bitboard)
 
                 # captures move happened, so restore captured piece
-                captured_piece_bitboard = self.board.GetBitboard(move_type.name)
-                captured_piece_bitboard |= self.board.SquareToBB(move_type.square)
-                self.board.SetBitboard(move_type.name, captured_piece_bitboard)
+                captured_piece_bitboard = self.board.GetBitboard(past_move.captured_piece.name)
+                captured_piece_bitboard |= self.board.SquareToBB(past_move.captured_piece.square)
+                self.board.SetBitboard(past_move.captured_piece.name, captured_piece_bitboard)
 
-                self.board.pieces.append(move_type)
+                self.board.pieces.append(past_move.captured_piece)
 
                 piece.square = initial_sq
                 piece.times_moved -= 1
@@ -628,7 +632,8 @@ class Chess:
                 drag_piece_bitboard = self.board.GetBitboard(piece.name)
                 drag_piece_bitboard &= ~self.board.SquareToBB(final_sq)
 
-                # set bitboard of the piece that the pawn promoted to
+                # set bitboard of the piece that the pawn promoted to, to register
+                # remove of piece from final square
                 self.board.SetBitboard(piece.name, drag_piece_bitboard)
 
                 piece.name = 'P' if piece.name.isupper() else 'p'

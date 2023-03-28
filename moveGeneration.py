@@ -1,5 +1,6 @@
 import numpy as np
 from typing import Any
+from move import Move
 
 class GenerateMoves:
     def __init__(self, board_object):
@@ -49,7 +50,7 @@ class GenerateMoves:
 
             for sq in dest_squares:
                 white_pawn = self.board.GetPieceOnSquare(sq + 7)
-                self.possible_moves.append((white_pawn, white_pawn.square, sq, '_'))
+                self.possible_moves.append(Move(white_pawn, white_pawn.square, sq, '_'))
 
         # left_captures
         l_captures = (self.board.white_pawns << np.uint64(9)) & ~rank_8 & ~self.board.H_FILE
@@ -62,7 +63,7 @@ class GenerateMoves:
 
             for sq in dest_squares:
                 white_pawn = self.board.GetPieceOnSquare(sq + 9)
-                self.possible_moves.append((white_pawn, white_pawn.square, sq, '_'))
+                self.possible_moves.append(Move(white_pawn, white_pawn.square, sq, '_'))
 
         # forward by 1
         if self.board.active_piece == 'w':
@@ -72,7 +73,7 @@ class GenerateMoves:
 
             for sq in dest_squares:
                 white_pawn = self.board.GetPieceOnSquare(sq + 8)
-                self.possible_moves.append((white_pawn, white_pawn.square, sq, '_'))
+                self.possible_moves.append(Move(white_pawn, white_pawn.square, sq, '_'))
 
         # forward by 2
         if self.board.active_piece == 'w':
@@ -81,7 +82,7 @@ class GenerateMoves:
 
             for sq in dest_squares:
                 white_pawn = self.board.GetPieceOnSquare(sq + 16)
-                self.possible_moves.append((white_pawn, white_pawn.square, sq, '_'))
+                self.possible_moves.append(Move(white_pawn, white_pawn.square, sq, '_'))
 
         # promotion by right captures
         promo_r_captures = (self.board.white_pawns << np.uint64(7)) & rank_8 & ~self.board.A_FILE
@@ -94,7 +95,7 @@ class GenerateMoves:
             for sq in dest_squares:
                 for promotes_to in ['Q', 'N', 'R', 'B']:
                     white_pawn = self.board.GetPieceOnSquare(sq + 7)
-                    self.possible_moves.append((white_pawn, white_pawn.square, sq, promotes_to))
+                    self.possible_moves.append(Move(white_pawn, white_pawn.square, sq, promotes_to))
 
         # promotion by left captures
         promo_l_captures = (self.board.white_pawns << np.uint64(9)) & rank_8 & ~self.board.H_FILE 
@@ -107,7 +108,7 @@ class GenerateMoves:
             for sq in dest_squares:
                 for promotes_to in ['Q', 'N', 'R', 'B']:
                     white_pawn = self.board.GetPieceOnSquare(sq + 9)
-                    self.possible_moves.append((white_pawn, white_pawn.square, sq, promotes_to))
+                    self.possible_moves.append(Move(white_pawn, white_pawn.square, sq, promotes_to))
 
         # promotion by forward 1
         if self.board.active_piece == 'w':
@@ -118,13 +119,13 @@ class GenerateMoves:
             for sq in dest_squares:
                 for promotes_to in ['Q', 'N', 'R', 'B']:
                     white_pawn = self.board.GetPieceOnSquare(sq + 8)
-                    self.possible_moves.append((white_pawn, white_pawn.square, sq, promotes_to))
+                    self.possible_moves.append(Move(white_pawn, white_pawn.square, sq, promotes_to))
 
         # en-passant
         if len(self.board.move_history) >= 1:
             last_move = self.board.move_history[-1]
 
-            piece, initial_square, final_sq, _ = last_move
+            piece, initial_square, final_sq = last_move.piece, last_move.initial, last_move.dest
 
             if piece.name == 'p' and abs(initial_square-final_sq) == 2*8:
                 ep_file = final_sq%8 + 1
@@ -148,7 +149,7 @@ class GenerateMoves:
 
                             for sq in dest_squares:
                                 white_pawn = self.board.GetPieceOnSquare(sq + 7)
-                                self.possible_moves.append((white_pawn, white_pawn.square, sq, 'EP'))
+                                self.possible_moves.append(Move(white_pawn, white_pawn.square, sq, 'EP'))
 
                 # en-passant left
                 if (self.board.white_pawns << np.uint64(1)) & self.board.black_pawns & self.board.FILES[ep_file] & ~self.board.H_FILE & rank_5 != np.uint64(0):
@@ -168,7 +169,7 @@ class GenerateMoves:
 
                             for sq in dest_squares:
                                 white_pawn = self.board.GetPieceOnSquare(sq + 9)
-                                self.possible_moves.append((white_pawn, white_pawn.square, sq, 'EP'))
+                                self.possible_moves.append(Move(white_pawn, white_pawn.square, sq, 'EP'))
                     
     def PossibleBlackPawnMoves(self):
         rank_1 = self.board.RANKS(1)
@@ -185,7 +186,7 @@ class GenerateMoves:
 
             for sq in dest_squares:
                 black_pawn = self.board.GetPieceOnSquare(sq - 9)
-                self.possible_moves.append((black_pawn, black_pawn.square, sq, '_'))
+                self.possible_moves.append(Move(black_pawn, black_pawn.square, sq, '_'))
 
         # left_captures
         l_captures = (self.board.black_pawns >> np.uint64(7)) & ~rank_1 & ~self.board.H_FILE
@@ -198,7 +199,7 @@ class GenerateMoves:
 
             for sq in dest_squares:
                 black_pawn = self.board.GetPieceOnSquare(sq - 7)
-                self.possible_moves.append((black_pawn, black_pawn.square, sq, '_'))
+                self.possible_moves.append(Move(black_pawn, black_pawn.square, sq, '_'))
 
         # forward by 1
         if self.board.active_piece == 'b':
@@ -208,7 +209,7 @@ class GenerateMoves:
 
             for sq in dest_squares:
                 black_pawn = self.board.GetPieceOnSquare(sq - 8)
-                self.possible_moves.append((black_pawn, black_pawn.square, sq, '_'))
+                self.possible_moves.append(Move(black_pawn, black_pawn.square, sq, '_'))
 
         # forward by 2
         if self.board.active_piece == 'b':
@@ -219,7 +220,7 @@ class GenerateMoves:
 
             for sq in dest_squares:
                 black_pawn = self.board.GetPieceOnSquare(sq - 16)
-                self.possible_moves.append((black_pawn, black_pawn.square, sq, '_'))
+                self.possible_moves.append(Move(black_pawn, black_pawn.square, sq, '_'))
 
         # promotion by right captures
         promo_r_captures = (self.board.black_pawns >> np.uint64(9)) & rank_1 & ~self.board.A_FILE
@@ -233,7 +234,7 @@ class GenerateMoves:
             for sq in dest_squares:
                 for promotes_to in ['q', 'n', 'r', 'b']:
                     black_pawn = self.board.GetPieceOnSquare(sq - 9)
-                    self.possible_moves.append((black_pawn, black_pawn.square, sq, promotes_to))
+                    self.possible_moves.append(Move(black_pawn, black_pawn.square, sq, promotes_to))
 
         # promotion by left captures
         promo_l_captures = (self.board.black_pawns >> np.uint64(7)) & rank_1 & ~self.board.H_FILE
@@ -247,7 +248,7 @@ class GenerateMoves:
             for sq in dest_squares:
                 for promotes_to in ['q', 'n', 'r', 'b']:
                     black_pawn = self.board.GetPieceOnSquare(sq - 7)
-                    self.possible_moves.append((black_pawn, black_pawn.square, sq, promotes_to))
+                    self.possible_moves.append(Move(black_pawn, black_pawn.square, sq, promotes_to))
 
         # promotion by forward 1
         if self.board.active_piece == 'b':
@@ -258,13 +259,13 @@ class GenerateMoves:
             for sq in dest_squares:
                 for promotes_to in ['q', 'n', 'r', 'b']:
                     black_pawn = self.board.GetPieceOnSquare(sq - 8)
-                    self.possible_moves.append((black_pawn, black_pawn.square, sq, promotes_to))
+                    self.possible_moves.append(Move(black_pawn, black_pawn.square, sq, promotes_to))
 
         # en-passant
         if len(self.board.move_history) >= 1:
             last_move = self.board.move_history[-1]
 
-            piece, initial_square, final_sq, _ = last_move
+            piece, initial_square, final_sq = last_move.piece, last_move.initial, last_move.dest
 
             if piece.name == 'P' and abs(initial_square - final_sq) == 2 * 8:
                 ep_file = final_sq % 8 + 1
@@ -290,7 +291,7 @@ class GenerateMoves:
 
                             for sq in dest_squares:
                                 black_pawn = self.board.GetPieceOnSquare(sq - 9)
-                                self.possible_moves.append((black_pawn, black_pawn.square, sq, 'EP'))
+                                self.possible_moves.append(Move(black_pawn, black_pawn.square, sq, 'EP'))
 
                 # en-passant left
                 if (self.board.black_pawns << np.uint64(1)) & self.board.white_pawns & self.board.FILES[
@@ -312,7 +313,7 @@ class GenerateMoves:
 
                             for sq in dest_squares:
                                 black_pawn = self.board.GetPieceOnSquare(sq - 7)
-                                self.possible_moves.append((black_pawn, black_pawn.square, sq, 'EP'))
+                                self.possible_moves.append(Move(black_pawn, black_pawn.square, sq, 'EP'))
         
     def PossibleWhitePawnKingAttacks(self, square):
         """
@@ -857,11 +858,15 @@ class GenerateMoves:
             elif self.board.active_piece == 'w' and self.number_of_attackers <= 1:
                 # filter ally move
                 attack_set &= (self.board.all_blacks | self.board.empty)
-                attack_set &= (self.capture_mask | self.push_mask)
-                attack_set &= piece.pinned_mask
+                
+                if self.capture_mask != (2**64) - 1:
+                    attack_set &= ((self.capture_mask & piece.pinned_mask) | (self.push_mask & piece.pinned_mask))
+                else:
+                    # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
+                    attack_set &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(attack_set):
-                    self.possible_moves.append((piece, piece.square, dest_sq, '_'))
+                    self.possible_moves.append(Move(piece, piece.square, dest_sq, '_'))
 
         elif piece.name == 'n':
             attack_set = self.KNIGHT_TABLE[piece.square] 
@@ -872,11 +877,15 @@ class GenerateMoves:
             elif self.board.active_piece == 'b' and self.number_of_attackers <= 1:
                 # filter ally move
                 attack_set &= (self.board.all_whites | self.board.empty)
-                attack_set &= (self.capture_mask | self.push_mask)
-                attack_set &= piece.pinned_mask
+                
+                if self.capture_mask != (2**64) - 1:
+                    attack_set &= ((self.capture_mask & piece.pinned_mask) | (self.push_mask & piece.pinned_mask))
+                else:
+                    # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
+                    attack_set &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(attack_set):
-                    self.possible_moves.append((piece, piece.square, dest_sq, '_'))
+                    self.possible_moves.append(Move(piece, piece.square, dest_sq, '_'))
 
         elif piece.name == 'K':
             attack_set = self.KING_TABLE[piece.square] 
@@ -902,13 +911,13 @@ class GenerateMoves:
                 result &= (self.board.all_blacks | self.board.empty)
 
                 if self.capture_mask != (2**64) - 1:
-                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                    result &= ((self.capture_mask & piece.pinned_mask) | (self.push_mask & piece.pinned_mask))
                 else:
                     # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
                     result &= piece.pinned_mask
          
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append((piece, piece.square, dest_sq, '_'))
+                    self.possible_moves.append(Move(piece, piece.square, dest_sq, '_'))
 
         elif piece.name == 'b':
             result = self.PossibleBishopMoves(piece.name, piece.square)
@@ -917,13 +926,13 @@ class GenerateMoves:
                 result &= (self.board.all_whites | self.board.empty)
                 
                 if self.capture_mask != (2**64) - 1:
-                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                    result &= ((self.capture_mask & piece.pinned_mask) | (self.push_mask & piece.pinned_mask))
                 else:
                     # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
                     result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append((piece, piece.square, dest_sq, '_'))
+                    self.possible_moves.append(Move(piece, piece.square, dest_sq, '_'))
             
         elif piece.name == 'R':
             result = self.PossibleRookMoves(piece.name, piece.square)
@@ -932,13 +941,13 @@ class GenerateMoves:
                 result &= (self.board.all_blacks | self.board.empty)
 
                 if self.capture_mask != (2**64) - 1:
-                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                    result &= ((self.capture_mask & piece.pinned_mask) | (self.push_mask & piece.pinned_mask))
                 else:
                     # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
                     result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append((piece, piece.square, dest_sq, '_'))
+                    self.possible_moves.append(Move(piece, piece.square, dest_sq, '_'))
 
         elif piece.name == 'r':
             result = self.PossibleRookMoves(piece.name, piece.square)
@@ -948,13 +957,13 @@ class GenerateMoves:
                 result &= (self.board.all_whites | self.board.empty)
                 
                 if self.capture_mask != (2**64) - 1:
-                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                    result &= ((self.capture_mask & piece.pinned_mask) | (self.push_mask & piece.pinned_mask))
                 else:
                     # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
                     result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append((piece, piece.square, dest_sq, '_'))
+                    self.possible_moves.append(Move(piece, piece.square, dest_sq, '_'))
             
         elif piece.name == 'Q':
             result = self.PossibleBishopMoves('B', piece.square) | self.PossibleRookMoves('R', piece.square)
@@ -963,13 +972,13 @@ class GenerateMoves:
                 result &= (self.board.all_blacks | self.board.empty)
                 
                 if self.capture_mask != (2**64) - 1:
-                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                    result &= ((self.capture_mask & piece.pinned_mask) | (self.push_mask & piece.pinned_mask))
                 else:
                     # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
                     result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append((piece, piece.square, dest_sq, '_'))
+                    self.possible_moves.append(Move(piece, piece.square, dest_sq, '_'))
 
         elif piece.name == 'q':
             result = self.PossibleBishopMoves('b', piece.square) | self.PossibleRookMoves('r', piece.square)
@@ -978,20 +987,20 @@ class GenerateMoves:
                 result &= (self.board.all_whites | self.board.empty)
 
                 if self.capture_mask != (2**64) - 1:
-                    result &= (self.capture_mask | (self.push_mask & piece.pinned_mask))
+                    result &= ((self.capture_mask & piece.pinned_mask) | (self.push_mask & piece.pinned_mask))
                 else:
                     # push mask will also be all 1s, but pinned mask has area between enemy slider and ally king and enemy piece, which is what we want
                     result &= piece.pinned_mask
 
                 for dest_sq in self.board.BBToSquares(result):
-                    self.possible_moves.append((piece, piece.square, dest_sq, '_'))
+                    self.possible_moves.append(Move(piece, piece.square, dest_sq, '_'))
     
 
     def FilterKingMoves(self):
         filtered = self.king_pseudo_legal_bitboard & ~self.board.king_danger_squares
 
         for dest_sq in self.board.BBToSquares(filtered):
-            self.possible_moves.append((self.ally_king, self.ally_king.square, dest_sq, '_'))
+            self.possible_moves.append(Move(self.ally_king, self.ally_king.square, dest_sq, '_'))
 
     def IsEnemyPiece(self, piece):
         return piece.colour != self.board.active_piece
@@ -1170,7 +1179,7 @@ class GenerateMoves:
 
             if (rook & self.board.white_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
                 # kingside castling possible
-                self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square + 2, 'CK'))
+                self.possible_moves.append(Move(self.ally_king, self.ally_king.square, self.ally_king.square + 2, 'CK'))
 
         if self.ally_king.colour == 'w' and 'Q' in self.board.castling_rights and self.board.IsSquareOccupied(56):
             # white king queenside castling
@@ -1180,7 +1189,7 @@ class GenerateMoves:
 
             if (rook & self.board.white_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
                 # kingside castling possible
-                self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square - 3, 'CQ'))
+                self.possible_moves.append(Move(self.ally_king, self.ally_king.square, self.ally_king.square - 3, 'CQ'))
 
         if self.ally_king.colour == 'b' and 'k' in self.board.castling_rights and self.board.IsSquareOccupied(7):
             # white king queenside castling
@@ -1190,7 +1199,7 @@ class GenerateMoves:
 
             if (rook & self.board.black_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
                 # kingside castling possible
-                self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square + 2, 'Ck'))
+                self.possible_moves.append(Move(self.ally_king, self.ally_king.square, self.ally_king.square + 2, 'Ck'))
 
         if self.ally_king.colour == 'b' and 'q' in self.board.castling_rights and self.board.IsSquareOccupied(0):
             # white king queenside castling
@@ -1200,7 +1209,7 @@ class GenerateMoves:
 
             if (rook & self.board.black_rooks) == rook and (danger & self.board.king_danger_squares) == 0 and (ray & self.board.occupied) == 0 and non_movement:
                 # kingside castling possible
-                self.possible_moves.append((self.ally_king, self.ally_king.square, self.ally_king.square - 3, 'Cq'))
+                self.possible_moves.append(Move(self.ally_king, self.ally_king.square, self.ally_king.square - 3, 'Cq'))
 
     def GenerateAllPossibleMoves(self):
         # reset attacked squares bitboard, and possible moves list
@@ -1227,7 +1236,7 @@ class GenerateMoves:
         self.PossibleBlackPawnMoves()
 
         # only pawns have moves set. We need to filter out pawn moves that aren't valid because pawn is pinned. Use pinned mask for this
-        self.possible_moves = list(filter(lambda move : move[2] in self.board.BBToSquares(move[0].pinned_mask), self.possible_moves))
+        self.possible_moves = list(filter(lambda move : move.dest in self.board.BBToSquares(move.piece.pinned_mask), self.possible_moves))
             
         for piece in self.board.pieces:
             if piece.name != 'P' and piece.name != 'p':

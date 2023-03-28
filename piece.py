@@ -1,4 +1,3 @@
-import numpy as np
 
 """
 piece class that contains information about the piece type, square, pinned mask (changes based on whether or not it is pinned)
