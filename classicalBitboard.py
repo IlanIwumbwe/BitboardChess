@@ -131,11 +131,11 @@ class Board:
     def PrintBoard(self, size="S"):
 
         if size == "S":
-            print('  ________')
+            print(' ________')
             for r_ind, rank in enumerate([self.console_board[i:i + 8] for i in range(0, 64, 8)]):
                 self.console_board += rank
 
-                print(f'{8 - r_ind}|' + ''.join(rank) + '|')
+                print('|' + ''.join(rank) + f'|{8 - r_ind}')
 
                 if r_ind == 7:
                     print('  '+''.join([chr(97+i) for i in range(8)]))

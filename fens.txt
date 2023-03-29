@@ -84,9 +84,5 @@ r3k3/1p3p2/p2q2p1/bn1B1P2/1N2PQP1/P7/3K1R1r/3R4 w - - 9 9
 # continuation
 r3k3/1p3p2/p5p1/bn1B1P2/1N2PqP1/P7/3K1R1r/3R4 w - - 11 10
 
-
-
-
-
-
-
+# cool discovery checkmate
+6k1/7p/5Pp1/4Q3/8/NK3p1P/8/8 b - - 0 0
