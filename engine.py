@@ -1,4 +1,4 @@
-from chess_logic import ChessLogic
+from chessLogic import ChessLogic
 import time
 
 class Engine:

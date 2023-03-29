@@ -1,7 +1,7 @@
 import pygame
 import sys
 from move import Move
-from chess_logic import ChessLogic
+from chessLogic import ChessLogic
 from render import Render, TOP_X, TOP_Y, SQUARE_SIZE
 
 class PlayableChess:
