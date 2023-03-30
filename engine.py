@@ -1,14 +1,12 @@
 from chessLogic import ChessLogic
 import time
+import random
 
 class Engine:
     def __init__(self):
         self.run = True
         self.chess = None
-        self.fen = ""
-
-        self.option = input("(P)erft test, (Q)uit: ")
-        
+    
     def Perft(self, depth, root = True):
         if depth == 0:
             return 1
@@ -45,35 +43,36 @@ class Engine:
         else:
             print("*Perft hasn't searched the same number of branches as Stockfish.\n*Find bug")
 
-    def Run(self):
+    def RandomMove(self):
+        move = random.choice(self.chess.moveGen.possible_moves)
 
-        while self.run:
+        return move
 
-            if self.option.upper() == "P":
-                self.fen = input("Fen: ").strip()
-                self.chess = ChessLogic(self.fen)
-
-                depth = int(input('Depth limit: '))    
-                print(f'Testing on: {self.chess.board.position_fen}') 
-
-                start = time.time()
-                print(f'Depth: {depth} | Num of positions: {self.Perft(depth)}')   
-                end = time.time()  
-                print(f"Time taken: {end - start} seconds")
-
-            elif self.option.upper() == "C":
-                self.ComparePerft()
-
-            elif self.option.upper() == "Q":
-                self.run = False
-            
-            self.option = input("(P)erft test, (C)ompare with Stockfish, (Q)uit: ").strip()
-            
-    
+ 
 if __name__ == '__main__':
     engine = Engine()
-    engine.Run()
+   
+    option = input("(T)est move generation, (Q)uit: ").strip().upper()
+    while engine.run:
+        if option == "T":
+            fen = input("Fen: ").strip()
+            engine.chess = ChessLogic(fen)
 
+            depth = int(input('Depth limit: '))    
+            print(f'Testing on: {engine.chess.board.position_fen}') 
+
+            start = time.time()
+            print(f'Depth: {depth} | Num of positions: {engine.Perft(depth)}')   
+            end = time.time()  
+            print(f"Time taken: {end - start} seconds")
+
+        elif option == "C":
+            engine.ComparePerft()
+
+        elif option == "Q":
+            engine.run = False
+        
+        option = input("(T)est, (C)ompare with Stockfish, (Q)uit: ").strip().upper()
 
     
    

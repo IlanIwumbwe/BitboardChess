@@ -14,14 +14,14 @@ BOARD_HEIGHT = SQUARE_SIZE*BOARD_DIMENSION
 TOP_X = (WIDTH-BOARD_WIDTH)//2
 TOP_Y = (HEIGHT-BOARD_HEIGHT)//2
 
-ODD_SQUARES = (40,54,60)#(221,240,228)#(255,51,51) # odd squares colour
-TEXT_COLOUR = (0,0,22) # rendering text
-EVEN_SQUARES =(221,240,228) #(40,54,60)# (255, 255, 153)#(170, 70, 70) # # even squares colour
-BG = (221,240,228)#(40,54,60) #(255, 255, 153) # (150, 100, 100)  # background colour
-DRAG_HIGHLIGHT = (255, 128, 0) # initial drag piece square
-MATE_HIGHLIGHT = (255, 251, 51) # nothing
-POSSIBLE_EVENS = (87, 200, 77) # possible squares
-POSSIBLE_ODDS = (171, 224, 152) # possible squares
+ODD_SQUARES = (40,54,60)
+TEXT_COLOUR = (0,0,22)
+EVEN_SQUARES =(221,240,228) 
+BG = (221,240,228)
+DRAG_HIGHLIGHT = (255, 128, 0)
+MATE_HIGHLIGHT = (255, 251, 51)
+POSSIBLE_EVENS = (87, 200, 77) 
+POSSIBLE_ODDS = (171, 224, 152) 
 
 f = 'freesansbold.ttf'
 

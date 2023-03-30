@@ -70,7 +70,7 @@ class ChessLogic:
         king_can_move = len(list(filter(lambda move : move.piece == self.moveGen.ally_king, self.moveGen.possible_moves))) != 0
         attacker_attacked = all([sq in self.attacked_squares for sq in self.board.BBToSquares(self.board.attackers)])
 
-        return (king_can_move == False and self.board.attackers != 0 and attacker_attacked == False)
+        return (king_can_move == False and self.board.attackers != 0 and attacker_attacked == False and len(self.moveGen.possible_moves) == 0)
 
     def IsStalemate(self):
         return len(self.moveGen.possible_moves) == 0 and self.board.attackers == 0

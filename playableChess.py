@@ -3,9 +3,10 @@ import sys
 from move import Move
 from chessLogic import ChessLogic
 from render import Render, TOP_X, TOP_Y, SQUARE_SIZE
+from engine import Engine
 
 class PlayableChess:
-    def __init__(self, starting_fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"):
+    def __init__(self, starting_fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", play="T"):
         self.logic = ChessLogic(starting_fen)
         self.render = Render()
         self.render.UpdateRenderer(self.logic)
@@ -15,6 +16,12 @@ class PlayableChess:
 
         self.visual_run = True
         self.console_run = False
+
+        self.play = play
+
+        if self.play == "R":
+            self.engine = Engine()
+            self.engine.chess = self.logic
 
     def GetPieceUnderMouse(self):
         x, y = pygame.Vector2(pygame.mouse.get_pos())
@@ -113,95 +120,103 @@ class PlayableChess:
                 self.MakeMove(the_move[0])
 
     def VisualBoard(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.logic.board.PrintBoard()
+        if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0:
+            if self.play == "R":
+                move = self.engine.RandomMove()
 
-                self.run = False
-                pygame.quit()
-                sys.exit()
+                self.MakeMove(move)
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_BACKSPACE:
-                    self.UnmakeMove()    
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.logic.board.PrintBoard()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.GetPieceUnderMouse() is not None:
-                    if not self.logic.dragging:
-                        
-                        self.logic.drag_piece = self.GetPieceUnderMouse()
-                        _, drag_piece_square = self.logic.drag_piece
+                    self.run = False
+                    pygame.quit()
+                    sys.exit()
 
-                        """
-                        which of the possible moves are possible for the piece being dragged?
-                        """
-                        self.logic.drag_piece_moves = list(filter(lambda move : move.initial == drag_piece_square, self.logic.moveGen.possible_moves))
-            
-                    if self.logic.IsAllyPiece(self.logic.drag_piece[0]):
-                        self.logic.dragging = True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                        self.UnmakeMove()    
 
-            if event.type == pygame.MOUSEBUTTONUP:
-                under_mouse = self.GetPieceUnderMouse()
-
-                if under_mouse is not None and self.logic.dragging:
-                    # try to find move that corresponds to this final square
-                    if isinstance(under_mouse, int):
-                        self.move = list(filter(lambda move : move.dest == under_mouse, self.logic.drag_piece_moves))
-                    else:
-                        """under the mouse is an opponent piece we can capture, check whether final square of this move 
-                        matches initial square of opponent piece under mouse"""
-                        self.move = list(filter(lambda move: move.dest == under_mouse[1], self.logic.drag_piece_moves))
-
-                    if len(self.move) == 0:
-                        # not a valid move for drag piece
-                        self.logic.dragging = False
-                    else:
-                        if self.move[0].type not in ['_', 'EP', 'CK', 'CQ', 'Ck', 'Cq']:
-                            # pawn promotion
-                            self.promoting = True
-
-                        else:
-                            # make move, it will be in list form, so index 0
-                            self.MakeMove(self.move[0])
-                            self.logic.dragging = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.GetPieceUnderMouse() is not None:
+                        if not self.logic.dragging:
                             
+                            self.logic.drag_piece = self.GetPieceUnderMouse()
+                            _, drag_piece_square = self.logic.drag_piece
 
-            if event.type == pygame.KEYDOWN and self.promoting:
-                # convention -> q, n, r, b
-                if event.key == pygame.K_q:
-                    # promote to queen
-                    self.MakeMove(self.move[0])
-                    
-                elif event.key == pygame.K_n:
-                    # promote to knight
-                    self.MakeMove(self.move[1])
-                    
-                elif event.key == pygame.K_r:
-                    # promote to rook
-                    self.MakeMove(self.move[2])
-                    
-                elif event.key == pygame.K_b:
-                    # promote to bishop
-                    self.MakeMove(self.move[3])
-                    
-                else:
+                            """
+                            which of the possible moves are possible for the piece being dragged?
+                            """
+                            self.logic.drag_piece_moves = list(filter(lambda move : move.initial == drag_piece_square, self.logic.moveGen.possible_moves))
+                
+                        if self.logic.IsAllyPiece(self.logic.drag_piece[0]):
+                            self.logic.dragging = True
+
+                if event.type == pygame.MOUSEBUTTONUP:
+                    under_mouse = self.GetPieceUnderMouse()
+
+                    if under_mouse is not None and self.logic.dragging:
+                        # try to find move that corresponds to this final square
+                        if isinstance(under_mouse, int):
+                            self.move = list(filter(lambda move : move.dest == under_mouse, self.logic.drag_piece_moves))
+                        else:
+                            """under the mouse is an opponent piece we can capture, check whether final square of this move 
+                            matches initial square of opponent piece under mouse"""
+                            self.move = list(filter(lambda move: move.dest == under_mouse[1], self.logic.drag_piece_moves))
+
+                        if len(self.move) == 0:
+                            # not a valid move for drag piece
+                            self.logic.dragging = False
+                        else:
+                            if self.move[0].type not in ['_', 'EP', 'CK', 'CQ', 'Ck', 'Cq']:
+                                # pawn promotion
+                                self.promoting = True
+
+                            else:
+                                # make move, it will be in list form, so index 0
+                                self.MakeMove(self.move[0])
+                                self.logic.dragging = False
+                                
+
+                if event.type == pygame.KEYDOWN and self.promoting:
+                    # convention -> q, n, r, b
+                    if event.key == pygame.K_q:
+                        # promote to queen
+                        self.MakeMove(self.move[0])
+                        
+                    elif event.key == pygame.K_n:
+                        # promote to knight
+                        self.MakeMove(self.move[1])
+                        
+                    elif event.key == pygame.K_r:
+                        # promote to rook
+                        self.MakeMove(self.move[2])
+                        
+                    elif event.key == pygame.K_b:
+                        # promote to bishop
+                        self.MakeMove(self.move[3])
+                        
+                    else:
+                        self.logic.dragging = False
+
                     self.logic.dragging = False
 
-                self.logic.dragging = False
-
-        self.render.clock.tick(30)
-        self.render.DrawWindow()
+            self.render.clock.tick(30)
+            self.render.DrawWindow()
 
 
 if __name__ == '__main__':
     starting_fen = input("Fen: ")
 
-    if not starting_fen:
-        chess = PlayableChess()
-    else:
-        chess = PlayableChess(starting_fen)
-
     choice = input('Would you like to play (C)onsole based, or on the (V)isual board: ').strip().upper()
+    play = input("(T)esting or (R)andom AI: ").strip().upper()
+
+    if not starting_fen:
+        chess = PlayableChess(play=play)
+    else:
+        chess = PlayableChess(starting_fen, play)
 
     if choice == 'V':
         while chess.visual_run:
