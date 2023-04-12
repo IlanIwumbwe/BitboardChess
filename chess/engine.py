@@ -35,7 +35,10 @@ class Engine:
         with open("../my_output.txt", "r") as m:
             my = sorted([i.replace('\n', '') for i in m.readlines()])
         
-        if len(st) == len(my):
+        if len(st) == 0 or len(my) == 0:
+            print("No comparison can be made")
+
+        elif len(st) == len(my):
             for j in zip(st, my):
                 if j[0] != j[1]:
                     print("*This branch has a descrepancy.\n*Moves searched under this branch aren't the same as Stockfish.\n*Stockfish, Mine")
@@ -54,19 +57,27 @@ class Engine:
 if __name__ == '__main__':
     engine = Engine()
    
-    option = input("(T)est move generation, (Q)uit: ").strip().upper()
     while engine.run:
+        option = input("\n(T)est, (C)ompare with Stockfish, (Q)uit: ").strip().upper()
+
         if option == "T":
             fen = input("Fen: ").strip()
-            engine.chess = ChessLogic(fen)
+
+            if not fen:
+                engine.chess = ChessLogic()
+            else:
+                engine.chess = ChessLogic(fen)
 
             depth = int(input('Depth limit: '))    
             print(f'Testing on: {engine.chess.board.position_fen}') 
 
             start = time.time()
-            print(f'Depth: {depth} | Num of positions: {engine.Perft(depth)}')   
+            positions = engine.Perft(depth)
+            print(f'Depth: {depth} | Num of positions: {positions}')   
             end = time.time()  
-            print(f"Time taken: {end - start} seconds")
+            time_taken = end - start
+            print(f"Time taken: {time_taken : .4f} seconds")
+            print(f"Positions per second: {positions / time_taken : .4f}")
 
         elif option == "C":
             engine.ComparePerft()
@@ -74,8 +85,5 @@ if __name__ == '__main__':
         elif option == "Q":
             engine.run = False
         
-        option = input("(T)est, (C)ompare with Stockfish, (Q)uit: ").strip().upper()
-
-    
-   
+        
     

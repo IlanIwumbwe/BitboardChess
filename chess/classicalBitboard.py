@@ -233,26 +233,9 @@ class Board:
             return list(filter(lambda piece : piece.square == square, self.pieces))[0]
 
     def SquareToBB(self, square):
-        binary = ['0']*64
-        bb = ''
+        bit_pos = 63-square
 
-        try:
-            binary[square] = '1'
-        except TypeError:
-            x = ord(square[0])-97
-            y = 8 - int(square[1])
-
-            binary[8*y+x] = '1'
-
-        for rank in [binary[i:i+8] for i in range(0, 64, 8)]:
-            bb += ''.join(rank)
-
-        bit_board = int(bb, 2)
-
-        bit_board = np.uint64(bit_board)
-
-        return bit_board
-
+        return np.uint64(2**bit_pos)
 
     def IsSquareOccupied(self, square):
         square_mask = self.SquareToBB(square)

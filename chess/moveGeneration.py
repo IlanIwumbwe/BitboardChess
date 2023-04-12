@@ -1,6 +1,7 @@
 import numpy as np
 from typing import Any
 from move import Move
+import time
 
 class GenerateMoves:
     def __init__(self, board_object):
@@ -1221,9 +1222,12 @@ class GenerateMoves:
         self.ally_king = self.GetAllyKing()
         self.enemy_king = self.GetEnemyKing()
 
+        #s = time.time()
         self.GetAttackers()
         self.SetMoveFilters() 
         self.SetPinnedMasks() 
+        #e = time.time()
+        #print(f"Masks and filters: {e-s}seconds")
 
         # THIS MUST STAY HERE ****************************
                                                         
@@ -1232,16 +1236,22 @@ class GenerateMoves:
         #*************************************************
 
         # pawn moves, pawns code does all possible moves for all pawns on board in one go, so doesn't go into for loop
+        #s = time.time()
         self.PossibleWhitePawnMoves()
         self.PossibleBlackPawnMoves()
+        #e = time.time()
+        #print(f"Pawn moves: {e-s} seconds")
 
         # only pawns have moves set. We need to filter out pawn moves that aren't valid because pawn is pinned. Use pinned mask for this
         self.possible_moves = list(filter(lambda move : move.dest in self.board.BBToSquares(move.piece.pinned_mask), self.possible_moves))
-            
+        
+        #s = time.time()
         for piece in self.board.pieces:
             if piece.name != 'P' and piece.name != 'p':
                 self.GetPossibleMoves(piece)
-           
+        #e = time.time()
+        #print(f"Other moves: {e-s}seconds")
+
         self.FilterKingMoves()
 
         if self.board.castling_rights != '' and self.board.attackers == 0:
