@@ -1,5 +1,6 @@
 import numpy as np
 from piece import Piece
+import math
 
 class Board:
     def __init__(self):
@@ -213,15 +214,27 @@ class Board:
         # empty is inverse of occupied
         self.empty = ~ self.occupied
 
-    def BBToSquares(self, bb):
+    @staticmethod
+    def BitscanForward(n):
+        return np.uint64(int(np.binary_repr(n & -n), 2))
 
-        bb = np.binary_repr(bb, width=64)
+    @staticmethod
+    def BitscanReverse(n):
+        binary = bin(n)[2:][::-1]
+        index = binary.rindex('1')
+
+        return np.uint64(1) << np.uint64(index)
+
+    def BBToSquares(self, bb):
+        x = bb
         squares = []
 
-        for rank_ind, line in enumerate([bb[i:i + 8] for i in range(0, 64, 8)]):
-            for file_ind, c in enumerate(line):
-                if c == '1':
-                    squares.append(8*rank_ind + file_ind)
+        while(x != 0):
+            # isolate LSB
+            lsb = x & -x
+            trailing_zeros = int(math.log(lsb, 2))
+            squares.append(63 - trailing_zeros)
+            x &= ~lsb
 
         return squares
 
