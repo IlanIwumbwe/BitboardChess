@@ -29,10 +29,10 @@ class Engine:
     
     @staticmethod
     def ComparePerft():
-        with open("stockfish_output.txt", "r") as s:
+        with open("../stockfish_output.txt", "r") as s:
             st = sorted([i.replace('\n', '') for i in s.readlines()])
         
-        with open("my_output.txt", "r") as m:
+        with open("../my_output.txt", "r") as m:
             my = sorted([i.replace('\n', '') for i in m.readlines()])
         
         if len(st) == len(my):
