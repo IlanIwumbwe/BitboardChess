@@ -1111,7 +1111,7 @@ class GenerateMoves:
 
         if self.board.active_piece == 'w':
             enemy_sliders = self.board.GetPiecesOnBitboard(self.board.black_bishops | self.board.black_queen | self.board.black_rooks)
-            enemy_pieces = self.board.all_blacks
+            enemy_pieces = self.board.all_blacks | self.board.black_king
 
             pins = self.board.all_whites
 
@@ -1120,7 +1120,7 @@ class GenerateMoves:
 
         else:
             enemy_sliders = self.board.GetPiecesOnBitboard(self.board.white_bishops | self.board.white_queen | self.board.white_rooks)
-            enemy_pieces = self.board.all_whites
+            enemy_pieces = self.board.all_whites | self.board.black_king
 
             pins = self.board.all_blacks
 

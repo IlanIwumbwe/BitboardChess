@@ -113,11 +113,6 @@ class Render:
                 self.RenderPiece(piece_type, square)
 
         if self.game_state.dragging:
-            drag_piece_type, drag_piece_square = self.game_state.drag_piece
-            pygame.draw.rect(self.win, DRAG_HIGHLIGHT, (
-            (drag_piece_square%8) * SQUARE_SIZE + TOP_X, (drag_piece_square//8) * SQUARE_SIZE + TOP_Y, SQUARE_SIZE,
-            SQUARE_SIZE), 0)
-
             for move in self.game_state.drag_piece_moves:
                 poss_sq = move.dest
                 x, y = poss_sq%8, poss_sq//8
@@ -129,18 +124,19 @@ class Render:
                                      (x * SQUARE_SIZE + TOP_X, y * SQUARE_SIZE + TOP_Y, SQUARE_SIZE, SQUARE_SIZE),
                                      0)
 
-                for index in range(64):
-                    piece_type, square = self.game_state.board.console_board[index], index
-                    if piece_type != '.':
-                        if square == poss_sq:
-                            self.RenderPiece(piece_type, square)
+            for piece in self.game_state.board.pieces:
+                self.RenderPiece(piece.name, piece.square)
 
+            pygame.draw.rect(self.win, DRAG_HIGHLIGHT, (
+            (self.game_state.drag_piece.square%8) * SQUARE_SIZE + TOP_X, (self.game_state.drag_piece.square//8) * SQUARE_SIZE + TOP_Y, SQUARE_SIZE,
+            SQUARE_SIZE), 0)
+                
             x, y = pygame.Vector2(pygame.mouse.get_pos())
 
-            if drag_piece_type.isupper():
-                image = SPRITES[drag_piece_type + '_w']
+            if self.game_state.drag_piece.name.isupper():
+                image = SPRITES[self.game_state.drag_piece.name + '_w']
             else:
-                image = SPRITES[drag_piece_type.upper() + '_b']
+                image = SPRITES[self.game_state.drag_piece.name.upper() + '_b']
 
             x, y = x-(image.get_width()//2), y-(image.get_height()//2)
             image = pygame.transform.scale(image, (SQUARE_SIZE, SQUARE_SIZE))

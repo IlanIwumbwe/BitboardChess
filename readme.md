@@ -2,10 +2,11 @@
 
 <img width="210" alt="Screenshot 2023-03-11 110641" src="https://user-images.githubusercontent.com/56346800/224480781-678ed55c-2e52-4064-9e93-d25be41df5dd.png">
 
-Currently implementing chess: [DONE? - need perft test]
+Implementing chess: 
   - Implement castling [DONE]
   - Filter for legal chess moves (handling pins, double checks etc)[DONE]
   - Write perft test [DONE]
+  - Make move generation faster
   - Start on engine itself
   
 GRAPHICAL

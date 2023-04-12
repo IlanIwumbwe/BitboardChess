@@ -31,15 +31,12 @@ class PlayableChess:
         if (0 <= x <= 7) and (0 <= y <= 7):
             square = 8*y + x
 
-            for index in range(64):
-                piece_type = self.logic.board.console_board[index]
+            piece = list(filter(lambda piece : piece.square == square, self.logic.board.pieces))
 
-                if piece_type != '.':
-                    if index == int(square):
-                        return piece_type, int(square)
-
-            if self.logic.dragging:
+            if self.logic.dragging and len(piece) == 0:
                 return int(square)
+            elif len(piece) != 0:
+                return piece[0]
             
         else:
             return None
@@ -72,59 +69,63 @@ class PlayableChess:
 
         self.logic.board.PrintBoard(size)
 
-        move = input("Move (piece_type, from, to, move_type): ")
+        if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0 and self.play == "R":
+            move = self.engine.RandomMove()
 
-        while not move:
-            print("Move types:\n - '_'(normal move)\n - 'EP'(en-passant)\n - 'Q,N,R,B,q,n,r,b' for promotion moves\n - 'CQ, CK, cq, ck for white and black castling respectively\n")
-            print('Type \'Q\' to quit')
+            self.MakeMove(move)
+        else:
             move = input("Move (piece_type, from, to, move_type): ")
-        
-        if move == 'Q':
-            self.console_based_run = False 
-        
-        elif move == 'U':
-            self.UnmakeMove()
 
-        elif len(move) > 0:
-            move = move.split(' ')
-
-            piece_type = move[0]
-            initial_sq = self.AlgebraicToNumber(move[1])
-            dest_sq = self.AlgebraicToNumber(move[2])
-            move_type = move[3]
-
-            the_move = list(filter(lambda move: move.piece.name == piece_type and self.logic.IsAllyPiece(piece_type) and move.initial == initial_sq and 
-            move.dest == dest_sq and move.type == move_type, self.logic.moveGen.possible_moves))
-
-            while len(the_move) == 0 and move != 'Q':
-                # is the entered move valid?
-                print('The move you entered is not valid')
-
-                move = input('Enter the move you\'d like to make (piece_type, from, to, move_type): ')
-
-                if move != 'Q':
-                    move = move.split(' ')
-
-                    piece_type = move[0]
-                    initial_sq = self.AlgebraicToNumber(move[1])
-                    dest_sq = self.AlgebraicToNumber(move[2])
-                    move_type = move[3]
-
-                    the_move = list(filter(lambda move: move.piece.name == piece_type and self.logic.IsAllyPiece(piece_type) and move.initial == initial_sq and 
-                    move.dest == dest_sq and move.type == move_type, self.logic.moveGen.possible_moves))
+            while not move:
+                print("Move types:\n - '_'(normal move)\n - 'EP'(en-passant)\n - 'Q,N,R,B,q,n,r,b' for promotion moves\n - 'CQ, CK, cq, ck for white and black castling respectively\n")
+                print('Type \'Q\' to quit')
+                move = input("Move (piece_type, from, to, move_type): ")
             
             if move == 'Q':
-                self.console_based_run = False
-            else:
-                print(' '.join(move))
-                self.MakeMove(the_move[0])
+                self.console_based_run = False 
+            
+            elif move == 'U':
+                self.UnmakeMove()
+
+            elif len(move) > 0:
+                move = move.split(' ')
+
+                piece_type = move[0]
+                initial_sq = self.AlgebraicToNumber(move[1])
+                dest_sq = self.AlgebraicToNumber(move[2])
+                move_type = move[3]
+
+                the_move = list(filter(lambda move: move.piece.name == piece_type and self.logic.IsAllyPiece(piece_type) and move.initial == initial_sq and 
+                move.dest == dest_sq and move.type == move_type, self.logic.moveGen.possible_moves))
+
+                while len(the_move) == 0 and move != 'Q':
+                    # is the entered move valid?
+                    print('The move you entered is not valid')
+
+                    move = input('Enter the move you\'d like to make (piece_type, from, to, move_type): ')
+
+                    if move != 'Q':
+                        move = move.split(' ')
+
+                        piece_type = move[0]
+                        initial_sq = self.AlgebraicToNumber(move[1])
+                        dest_sq = self.AlgebraicToNumber(move[2])
+                        move_type = move[3]
+
+                        the_move = list(filter(lambda move: move.piece.name == piece_type and self.logic.IsAllyPiece(piece_type) and move.initial == initial_sq and 
+                        move.dest == dest_sq and move.type == move_type, self.logic.moveGen.possible_moves))
+                
+                if move == 'Q':
+                    self.console_based_run = False
+                else:
+                    print(' '.join(move))
+                    self.MakeMove(the_move[0])
 
     def VisualBoard(self):
-        if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0:
-            if self.play == "R":
-                move = self.engine.RandomMove()
+        if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0 and self.play == "R":
+            move = self.engine.RandomMove()
 
-                self.MakeMove(move)
+            self.MakeMove(move)
 
         else:
             for event in pygame.event.get():
@@ -144,14 +145,13 @@ class PlayableChess:
                         if not self.logic.dragging:
                             
                             self.logic.drag_piece = self.GetPieceUnderMouse()
-                            _, drag_piece_square = self.logic.drag_piece
-
+        
                             """
                             which of the possible moves are possible for the piece being dragged?
                             """
-                            self.logic.drag_piece_moves = list(filter(lambda move : move.initial == drag_piece_square, self.logic.moveGen.possible_moves))
+                            self.logic.drag_piece_moves = list(filter(lambda move : move.initial == self.logic.drag_piece.square, self.logic.moveGen.possible_moves))
                 
-                        if self.logic.IsAllyPiece(self.logic.drag_piece[0]):
+                        if self.logic.IsAllyPiece(self.logic.drag_piece.name):
                             self.logic.dragging = True
 
                 if event.type == pygame.MOUSEBUTTONUP:
@@ -164,7 +164,7 @@ class PlayableChess:
                         else:
                             """under the mouse is an opponent piece we can capture, check whether final square of this move 
                             matches initial square of opponent piece under mouse"""
-                            self.move = list(filter(lambda move: move.dest == under_mouse[1], self.logic.drag_piece_moves))
+                            self.move = list(filter(lambda move: move.dest == under_mouse.square, self.logic.drag_piece_moves))
 
                         if len(self.move) == 0:
                             # not a valid move for drag piece

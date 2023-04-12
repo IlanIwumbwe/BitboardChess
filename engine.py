@@ -35,12 +35,14 @@ class Engine:
         with open("my_output.txt", "r") as m:
             my = sorted([i.replace('\n', '') for i in m.readlines()])
         
-        if len(st) != len(my):
+        if len(st) == len(my):
             for j in zip(st, my):
                 if j[0] != j[1]:
-                    print("*This branch has a descrepancy.\n*Moves searched under this branch aren't the same as Stockfish.\n*Find bug")
+                    print("*This branch has a descrepancy.\n*Moves searched under this branch aren't the same as Stockfish.\n*Stockfish, Mine")
                     print(j)
+
         else:
+            print(set(st).difference(set(my)))
             print("*Perft hasn't searched the same number of branches as Stockfish.\n*Find bug")
 
     def RandomMove(self):

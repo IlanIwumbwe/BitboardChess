@@ -91,3 +91,29 @@ r3k3/1p3p2/p5p1/bn1B1P2/1N2PqP1/P7/3K1R1r/3R4 w - - 11 10
 8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 0
 7k/3N2qp/b5r1/2p1Q1N1/Pp4PK/7P/1P3p2/6r1 w - - 7 4
 
+8/5pkp/1n4p1/1P6/3K2P1/2N4P/8/8 w - - 0 70
+
+# bug position
+8/5pkp/1n4p1/1P6/3K2PP/2N5/8/8 b - - 0 71
+depth 4 diff
+8/5pkp/1n6/1P4p1/3K2PP/2N5/8/8 w - - 0 72
+depth 3 diff
+8/5pkp/1n6/1P4P1/3K2P1/2N5/8/8 b - - 0 73
+depth 2 diff
+8/6kp/1n6/1P3pP1/3K2P1/2N5/8/8 w - - 0 74 
+depth 1 no diff? -> f7 f5
+8/5pk1/1n6/1P4Pp/3K2P1/2N5/8/8 b - - 0 75
+depth 1 no diff? -> h7 h5 
+move gen is actually correct for this position (counted manually)
+
+
+
+bug pos: (fixed: issue was with testing whether enemy king is in pinned ray) 
+1R6/p2r4/2ppkp2/6p1/2PKP2p/P4P2/6PP/8 b - - 0 0
+depth 4 diff
+1R6/p2r4/2p1kp2/3p2p1/2PKP2p/P4P2/6PP/8 w - - 0 1
+depth 3 diff
+1R6/p2r4/2p1kp2/3P2p1/3KP2p/P4P2/6PP/8 b - - 1 2
+depth 2 diff
+1R6/p2r4/2pk1p2/3P2p1/3KP2p/P4P2/6PP/8 w - - 1 3
+
