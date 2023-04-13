@@ -1,11 +1,16 @@
 from chessLogic import ChessLogic
 import time
 import random
+from evaluation import Evaluation
+import math
 
 class Engine:
     def __init__(self):
         self.run = True
         self.chess = None
+        self.evaluate = Evaluation()
+        self.search_depth = 2
+        self.best_move = None
     
     def Perft(self, depth, root = True):
         if depth == 0:
@@ -48,12 +53,40 @@ class Engine:
             print(set(st).difference(set(my)))
             print("*Perft hasn't searched the same number of branches as Stockfish.\n*Find bug")
 
+    def Search(self, depth):
+        if depth == 0:
+            self.evaluate.board = self.chess.board
+            return self.evaluate.Evaluate()
+        
+        if self.chess.is_checkmate:
+            return -math.inf
+        
+        best_score = -math.inf
+
+        for move in self.chess.moveGen.possible_moves:
+            self.chess.MakeMove(move)
+
+            evaluation = -self.Search(depth - 1)
+            
+            if evaluation > best_score:
+                best_score = evaluation
+
+                if depth == self.search_depth:
+                    self.best_move = move
+
+            self.chess.UnmakeMove()
+
+        return best_score
+
     def RandomMove(self):
         move = random.choice(self.chess.moveGen.possible_moves)
-
+        
         return move
-
- 
+    
+    def BestMove(self):
+        self.Search(self.search_depth)
+        return self.best_move
+     
 if __name__ == '__main__':
     engine = Engine()
    
@@ -83,7 +116,9 @@ if __name__ == '__main__':
             engine.ComparePerft()
 
         elif option == "Q":
-            engine.run = False
+            engine.run = False        
+
+            
         
         
     

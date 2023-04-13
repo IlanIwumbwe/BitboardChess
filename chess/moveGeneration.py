@@ -1014,6 +1014,7 @@ class GenerateMoves:
                     self.board.attackers |= (self.KNIGHT_TABLE[ally_king_square] & self.board.black_knights)
 
                 elif piece.name == 'B':
+                    
                     self.board.attackers |= (self.PossibleBishopMoves('B', ally_king_square) & self.board.white_bishops)
 
                 elif piece.name == 'b':

@@ -237,6 +237,9 @@ class Board:
             x &= ~lsb
 
         return squares
+    
+    def CountPieces(self, piece_name):
+        return len(self.BBToSquares(self.GetBitboard(piece_name)))
 
     def GetPiecesOnBitboard(self, bb):
         return [piece for sq in self.BBToSquares(bb) for piece in self.pieces if piece.square == sq]
@@ -272,7 +275,7 @@ class Board:
         self.black_bishops,
         self.black_king,
         self.black_queen,
-        self.black_pawns,
+        self.black_pawns,   
         self.empty]
 
     

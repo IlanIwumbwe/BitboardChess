@@ -19,7 +19,7 @@ class PlayableChess:
 
         self.play = play
 
-        if self.play == "R":
+        if self.play == "A":
             self.engine = Engine()
             self.engine.chess = self.logic
 
@@ -69,8 +69,8 @@ class PlayableChess:
 
         self.logic.board.PrintBoard(size)
 
-        if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0 and self.play == "R":
-            move = self.engine.RandomMove()
+        if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0 and self.play == "A":
+            move = self.engine.SearchMove()
 
             self.MakeMove(move)
         else:
@@ -122,9 +122,8 @@ class PlayableChess:
                     self.MakeMove(the_move[0])
 
     def VisualBoard(self):
-        if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0 and self.play == "R":
-            move = self.engine.RandomMove()
-
+        if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0 and self.play == "A":
+            move = self.engine.BestMove()
             self.MakeMove(move)
 
         else:
@@ -211,7 +210,7 @@ if __name__ == '__main__':
     starting_fen = input("Fen: ")
 
     choice = input('Would you like to play (C)onsole based, or on the (V)isual board: ').strip().upper()
-    play = input("(T)esting or (R)andom AI: ").strip().upper()
+    play = input("(T)esting or (A)I: ").strip().upper()
 
     if not starting_fen:
         chess = PlayableChess(play=play)
