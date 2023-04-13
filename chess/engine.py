@@ -60,6 +60,8 @@ class Engine:
         
         if self.chess.is_checkmate:
             return -math.inf
+        elif self.chess.is_stalemate:
+            return 0
         
         best_score = -math.inf
 
@@ -77,6 +79,35 @@ class Engine:
             self.chess.UnmakeMove()
 
         return best_score
+    
+    def AlphaBeta(self, depth, alpha, beta):
+        if depth == 0:
+            self.evaluate.board = self.chess.board
+            return self.evaluate.Evaluate()
+        
+        if self.chess.is_checkmate:
+            return -math.inf
+        elif self.chess.is_stalemate:
+            return 0
+
+        for move in self.chess.moveGen.possible_moves:
+            self.chess.MakeMove(move)
+
+            evaluation = -self.AlphaBeta(depth-1, -beta, -alpha)
+
+            self.chess.UnmakeMove()
+
+            if evaluation >= beta:
+                # snip
+                return beta
+            
+            if evaluation > alpha:
+                alpha = evaluation
+
+                if depth == self.search_depth:
+                    self.best_move = move
+
+        return alpha
 
     def RandomMove(self):
         move = random.choice(self.chess.moveGen.possible_moves)
@@ -84,7 +115,7 @@ class Engine:
         return move
     
     def BestMove(self):
-        self.Search(self.search_depth)
+        self.AlphaBeta(self.search_depth, -math.inf, math.inf)
         return self.best_move
      
 if __name__ == '__main__':

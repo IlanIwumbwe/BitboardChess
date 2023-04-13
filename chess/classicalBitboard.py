@@ -246,6 +246,7 @@ class Board:
 
     def GetPieceOnSquare(self, square):
         if self.IsSquareOccupied(square):
+            #print(square)
             return list(filter(lambda piece : piece.square == square, self.pieces))[0]
 
     def SquareToBB(self, square):
