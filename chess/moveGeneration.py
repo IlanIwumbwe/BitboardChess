@@ -558,7 +558,7 @@ class GenerateMoves:
             if (piece_type == 'B' and self.board.active_piece == 'b') or (piece_type == 'b' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
 
-        elif ((piece_type == 'B' and self.board.active_piece == 'b') or (piece_type == 'b' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
+        elif ((piece_type == 'B' and self.board.active_piece == 'b' and masked_blockers & ~self.board.black_king == 0) or (piece_type == 'b' and self.board.active_piece == 'w' and masked_blockers & ~self.board.white_king == 0)):
             self.board.king_danger_squares |= ray
                 
         else:
@@ -592,7 +592,7 @@ class GenerateMoves:
             if (piece_type == 'B' and self.board.active_piece == 'b') or (piece_type == 'b' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
 
-        elif ((piece_type == 'B' and self.board.active_piece == 'b') or (piece_type == 'b' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
+        elif ((piece_type == 'B' and self.board.active_piece == 'b' and masked_blockers & ~self.board.black_king == 0) or (piece_type == 'b' and self.board.active_piece == 'w' and masked_blockers & ~self.board.white_king == 0)):
             self.board.king_danger_squares |= ray
 
         else:
@@ -626,7 +626,7 @@ class GenerateMoves:
             if (piece_type == 'B' and self.board.active_piece == 'b') or (piece_type == 'b' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
 
-        elif ((piece_type == 'B' and self.board.active_piece == 'b') or (piece_type == 'b' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
+        elif ((piece_type == 'B' and self.board.active_piece == 'b' and masked_blockers & ~self.board.black_king == 0) or (piece_type == 'b' and self.board.active_piece == 'w' and masked_blockers & ~self.board.white_king == 0)):
             self.board.king_danger_squares |= ray
 
         else:
@@ -660,7 +660,7 @@ class GenerateMoves:
             if (piece_type == 'B' and self.board.active_piece == 'b') or (piece_type == 'b' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
 
-        elif ((piece_type == 'B' and self.board.active_piece == 'b') or (piece_type == 'b' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
+        elif ((piece_type == 'B' and self.board.active_piece == 'b' and masked_blockers & ~self.board.black_king == 0) or (piece_type == 'b' and self.board.active_piece == 'w' and masked_blockers & ~self.board.white_king == 0)):
             self.board.king_danger_squares |= ray
 
 
@@ -704,7 +704,7 @@ class GenerateMoves:
             if (piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
 
-        elif ((piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
+        elif ((piece_type == 'R' and self.board.active_piece == 'b' and masked_blockers & ~self.board.black_king == 0) or (piece_type == 'r' and self.board.active_piece == 'w' and masked_blockers & ~self.board.white_king == 0)):
             self.board.king_danger_squares |= ray
             
         else:
@@ -738,7 +738,7 @@ class GenerateMoves:
             if (piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
 
-        elif ((piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
+        elif ((piece_type == 'R' and self.board.active_piece == 'b' and masked_blockers & ~self.board.black_king == 0) or (piece_type == 'r' and self.board.active_piece == 'w' and masked_blockers & ~self.board.white_king == 0)):
             self.board.king_danger_squares |= ray
             
         else:
@@ -772,7 +772,7 @@ class GenerateMoves:
             if (piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
 
-        elif ((piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
+        elif ((piece_type == 'R' and self.board.active_piece == 'b' and masked_blockers & ~self.board.black_king == 0) or (piece_type == 'r' and self.board.active_piece == 'w' and masked_blockers & ~self.board.white_king == 0)):
             self.board.king_danger_squares |= ray
 
         else:
@@ -807,7 +807,7 @@ class GenerateMoves:
             if (piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w'):
                 self.board.king_danger_squares |= ray
 
-        elif ((piece_type == 'R' and self.board.active_piece == 'b') or (piece_type == 'r' and self.board.active_piece == 'w')) and (masked_blockers & ~(self.board.black_king | self.board.white_king) == 0):
+        elif ((piece_type == 'R' and self.board.active_piece == 'b' and masked_blockers & ~self.board.black_king == 0) or (piece_type == 'r' and self.board.active_piece == 'w' and masked_blockers & ~self.board.white_king == 0)):
             self.board.king_danger_squares |= ray
 
         else:

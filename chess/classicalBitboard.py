@@ -246,7 +246,6 @@ class Board:
 
     def GetPieceOnSquare(self, square):
         if self.IsSquareOccupied(square):
-            #print(square)
             return list(filter(lambda piece : piece.square == square, self.pieces))[0]
 
     def SquareToBB(self, square):
@@ -279,8 +278,7 @@ class Board:
         self.black_pawns,   
         self.empty]
 
-    
-
+        
 if __name__=='__main__':
     board = Board()
     """board.ParseFen('R7/8/5rk1/5p2/7P/1p3KP1/P7/8 b - - 0 0')

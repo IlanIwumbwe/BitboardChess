@@ -149,6 +149,7 @@ class PlayableChess:
                             which of the possible moves are possible for the piece being dragged?
                             """
                             self.logic.drag_piece_moves = list(filter(lambda move : move.initial == self.logic.drag_piece.square, self.logic.moveGen.possible_moves))
+
                 
                         if self.logic.IsAllyPiece(self.logic.drag_piece.name):
                             self.logic.dragging = True

@@ -117,3 +117,10 @@ depth 3 diff
 depth 2 diff
 1R6/p2r4/2pk1p2/3P2p1/3KP2p/P4P2/6PP/8 w - - 1 3
 
+bug pos: (FIXED: problem with checking king danger square rays correctly)
+6k1/3R4/5Kp1/6r1/4P3/8/8/8 b - - 0 0
+depth 3 diff
+6k1/3R4/5Kp1/8/4P1r1/8/8/8 w - - 0 1
+depth 2 diff
+6k1/3RK3/6p1/8/4P1r1/8/8/8 b - - 1 2
+depth 1 diff
