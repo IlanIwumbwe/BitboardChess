@@ -87,6 +87,7 @@ class ChessLogic:
         else:
             self.board.active_piece = "w"
 
+
     def MakeMove(self, move):
         """
         move structure -> piece_name, initial_sq, final_sq, move_type

@@ -9,7 +9,7 @@ class Engine:
         self.run = True
         self.chess = None
         self.evaluate = Evaluation()
-        self.search_depth = 2
+        self.search_depth = 3
         self.best_move = None
     
     def Perft(self, depth, root = True):

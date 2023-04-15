@@ -33,8 +33,7 @@ class GenerateMoves:
 
         self.CASTLING_MASKS = {'CQ': {'R': np.uint64(128), 'd': np.uint64(120)}, 'CK': {'R': np.uint64(1), 'd': np.uint64(14)}, 'Ck': {'r': np.uint(2**56), 'd': np.uint64(2**59 + 2**58 + 2**57)}, 'Cq': {'r': np.uint64(2**63), 'd': np.uint64(2**62 + 2**61 + 2**59 + 2**60)}}
         self.get_castling_masks = lambda type, *k: [self.CASTLING_MASKS[type][i] for i in k]
-
-
+    
     def PossibleWhitePawnMoves(self):
         rank_8 = self.board.RANKS(8)
         rank_4 = self.board.RANKS(4)
