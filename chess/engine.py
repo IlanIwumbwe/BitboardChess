@@ -11,6 +11,7 @@ class Engine:
         self.evaluate = Evaluation()
         self.search_depth = 3
         self.best_move = None
+        self.move_scores = {}
     
     def Perft(self, depth, root = True):
         if depth == 0:
@@ -101,11 +102,10 @@ class Engine:
                 # snip
                 return beta
             
-            if evaluation > alpha:
-                alpha = evaluation
+            alpha = max(evaluation, alpha)
 
-                if depth == self.search_depth:
-                    self.best_move = move
+            if depth == self.search_depth:
+                self.move_scores[move] = alpha
 
         return alpha
 
@@ -115,8 +115,12 @@ class Engine:
         return move
     
     def BestMove(self):
+        self.move_scores = {}
         self.AlphaBeta(self.search_depth, -math.inf, math.inf)
-        return self.best_move
+
+        best_move = max(self.move_scores, key=self.move_scores.get)
+
+        return best_move
      
 if __name__ == '__main__':
     engine = Engine()

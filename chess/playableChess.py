@@ -70,10 +70,16 @@ class PlayableChess:
         self.logic.board.PrintBoard(size)
 
         if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0 and self.play == "A":
-            move = self.engine.BestMove()
 
-            print(f"{move.piece.name} {self.logic.NumbertoAlgebraic(move.initial)} {self.logic.NumbertoAlgebraic(move.dest)} {move.type}")
-            self.MakeMove(move)
+            try:
+                move = self.engine.BestMove()
+
+                print(f"{move.piece.name} {self.logic.NumbertoAlgebraic(move.initial)} {self.logic.NumbertoAlgebraic(move.dest)} {move.type}")
+                self.MakeMove(move)
+            except:
+                print("Final state before crash")
+                self.logic.board.PrintBoard()
+
         else:
             move = input("Move (piece_type, from, to, move_type): ")
 
@@ -124,8 +130,15 @@ class PlayableChess:
 
     def VisualBoard(self):
         if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0 and self.play == "A":
-            move = self.engine.BestMove()
-            self.MakeMove(move)
+            try:
+                move = self.engine.BestMove()
+
+                print(f"{move.piece.name} {self.logic.NumbertoAlgebraic(move.initial)} {self.logic.NumbertoAlgebraic(move.dest)} {move.type}")
+                self.MakeMove(move)
+
+            except:
+                print("Final state before crash")
+                self.logic.board.PrintBoard()
 
         else:
             for event in pygame.event.get():

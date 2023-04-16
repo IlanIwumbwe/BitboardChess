@@ -3,6 +3,13 @@ from typing import Any
 from move import Move
 import time
 
+"""
+special move flags. most significant 4 bits in 16-bit word. 6 and 7 unused.
+"""
+SPECIAL_MOVE_FLAGS = {"quiet": 0x0000, "dpp":0x1000, "king_castle":0x2000, "queen_castle":0x3000, "captures":0x4000, "ep_capture":0x5000, 
+                      "knight_promo":0x8000, "bishop_promo":0x9000, "rook_promo":0xa000, "queen_promo":0xb000, "kpc":0xc000, "bpc":0xd000,
+                      "rpc":0xe000, "qpc":0xf000}
+
 class GenerateMoves:
     def __init__(self, board_object):
         self.possible_moves = [] # stores moves for all pieces expect kings
@@ -33,6 +40,9 @@ class GenerateMoves:
 
         self.CASTLING_MASKS = {'CQ': {'R': np.uint64(128), 'd': np.uint64(120)}, 'CK': {'R': np.uint64(1), 'd': np.uint64(14)}, 'Ck': {'r': np.uint(2**56), 'd': np.uint64(2**59 + 2**58 + 2**57)}, 'Cq': {'r': np.uint64(2**63), 'd': np.uint64(2**62 + 2**61 + 2**59 + 2**60)}}
         self.get_castling_masks = lambda type, *k: [self.CASTLING_MASKS[type][i] for i in k]
+
+    def GetMoveCode(self, from_sq, to_sq, special_flag):
+        return SPECIAL_MOVE_FLAGS[special_flag] | np.uint16(from_sq) << 6 | np.uint16(to_sq)
     
     def PossibleWhitePawnMoves(self):
         rank_8 = self.board.RANKS(8)

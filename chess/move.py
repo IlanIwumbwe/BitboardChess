@@ -13,13 +13,12 @@ class Move:
 Move representation
 
 can use 16 bits to store a move:
-- 0-5 (dest sq)
-- 6-11(origin sq)
-- 12-13(promotion piece type)
-- 14-15(special move)
 
-special moves:
-* en-passant
-* castling
-* promotion
+5:0 -> dest square
+11:6 -> initial square
+
+15:12 -> flags for move kind and promoted piece 
+
+
+
 """
