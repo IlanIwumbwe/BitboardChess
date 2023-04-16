@@ -70,8 +70,9 @@ class PlayableChess:
         self.logic.board.PrintBoard(size)
 
         if self.logic.board.active_piece == "b" and len(self.logic.moveGen.possible_moves) != 0 and self.play == "A":
-            move = self.engine.SearchMove()
+            move = self.engine.BestMove()
 
+            print(f"{move.piece.name} {self.logic.NumbertoAlgebraic(move.initial)} {self.logic.NumbertoAlgebraic(move.dest)} {move.type}")
             self.MakeMove(move)
         else:
             move = input("Move (piece_type, from, to, move_type): ")
