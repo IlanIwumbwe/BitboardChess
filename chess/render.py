@@ -114,7 +114,7 @@ class Render:
 
         if self.game_state.dragging:
             for move in self.game_state.drag_piece_moves:
-                poss_sq = move.dest
+                poss_sq = move & 0x3f
                 x, y = poss_sq%8, poss_sq//8
 
                 if (x+y)%2 == 0:

@@ -162,7 +162,7 @@ class PlayableChess:
                             """
                             which of the possible moves are possible for the piece being dragged?
                             """
-                            self.logic.drag_piece_moves = list(filter(lambda move : move.initial == self.logic.drag_piece.square, self.logic.moveGen.possible_moves))
+                            self.logic.drag_piece_moves = list(filter(lambda move : (move & 0xfc0) >> 6 == self.logic.drag_piece.square, self.logic.moveGen.possible_moves))
 
                 
                         if self.logic.IsAllyPiece(self.logic.drag_piece.name):
@@ -174,17 +174,17 @@ class PlayableChess:
                     if under_mouse is not None and self.logic.dragging:
                         # try to find move that corresponds to this final square
                         if isinstance(under_mouse, int):
-                            self.move = list(filter(lambda move : move.dest == under_mouse, self.logic.drag_piece_moves))
+                            self.move = list(filter(lambda move : move & 0x3f == under_mouse, self.logic.drag_piece_moves))
                         else:
                             """under the mouse is an opponent piece we can capture, check whether final square of this move 
                             matches initial square of opponent piece under mouse"""
-                            self.move = list(filter(lambda move: move.dest == under_mouse.square, self.logic.drag_piece_moves))
+                            self.move = list(filter(lambda move: move & 0x3f == under_mouse.square, self.logic.drag_piece_moves))
 
                         if len(self.move) == 0:
                             # not a valid move for drag piece
                             self.logic.dragging = False
                         else:
-                            if self.move[0].type not in ['_', 'EP', 'CK', 'CQ', 'Ck', 'Cq']:
+                            if self.move[0] & 0x8000 != 0:
                                 # pawn promotion
                                 self.promoting = True
 
