@@ -124,3 +124,8 @@ depth 3 diff
 depth 2 diff
 6k1/3RK3/6p1/8/4P1r1/8/8/8 b - - 1 2
 depth 1 diff
+
+bug pos: 
+bug: promotion done incorrectly
+
+R7/P7/5p2/4pk1p/8/3K1Pp1/7P/8 
