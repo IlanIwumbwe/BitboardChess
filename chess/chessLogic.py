@@ -267,6 +267,7 @@ class ChessLogic:
                 piece.name = "P" if piece.name.isupper() else "p"
 
             drag_piece_bitboard = self.board.GetBitboard(piece.name)
+            drag_piece_bitboard &= ~self.board.SquareToBB(to_sq)
             drag_piece_bitboard |= self.board.SquareToBB(from_sq)
             self.board.SetBitboard(piece.name, drag_piece_bitboard)
 
